@@ -1,0 +1,193 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime, date
+import time
+
+st.set_page_config(page_title="경남 생태관광", page_icon="🌿", layout="wide")
+
+st.markdown("""
+    <style>
+    .main {background-color: #f8f9fa;}
+    .program-card {background-color: white; padding: 20px; border-radius: 12px; 
+                   box-shadow: 0 3px 10px rgba(0,0,0,0.08); margin-bottom: 15px; border: 1px solid #e0e0e0;}
+    .title {color: #1a5f3a; font-size: 42px; font-weight: bold; text-align: center; margin-bottom: 10px;}
+    .subtitle {color: #2e7d32; text-align: center; font-size: 20px; margin-bottom: 30px;}
+    .program-image {width: 100%; height: 210px; object-fit: cover; border-radius: 10px; margin-bottom: 15px;}
+    .deadline {color: #d32f2f; font-weight: bold;}
+    .full {color: #d32f2f; font-weight: bold;}
+    .notice {background-color: #fff3cd; padding: 18px; border-radius: 10px; border-left: 6px solid #ffc107; margin-bottom: 25px;}
+    </style>
+""", unsafe_allow_html=True)
+
+# ====================== 사이드바 ======================
+menu = st.sidebar.selectbox(
+    "📍 메뉴 선택",
+    ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
+)
+st.sidebar.info("🌱 경남 생태관광 신청 시스템\n버전 5.0 - 최종판")
+
+# ====================== 데이터 불러오기 ======================
+try:
+    df = pd.read_csv("신청목록.csv", encoding="utf-8-sig")
+except:
+    df = pd.DataFrame(columns=["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액"])
+
+# ====================== 프로그램 목록 (메인 페이지) ======================
+if menu == "🏠 프로그램 목록":
+    st.markdown('<p class="title">🌿 경남 생태관광</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">자연과 함께하는 특별한 경험</p>', unsafe_allow_html=True)
+
+    # 공지사항
+    st.markdown("""
+        <div class="notice">
+            <strong>📢 공지사항 및 안내</strong><br>
+            • 모든 프로그램은 <strong>선착순</strong>으로 진행됩니다.<br>
+            • 취소는 신청일 기준 <strong>7일 전</strong>까지 가능합니다.<br>
+            • 날씨에 따라 일정이 변경될 수 있으니 사전 연락 부탁드립니다.<br>
+            • 문의 : 010-1234-5678
+        </div>
+    """, unsafe_allow_html=True)
+
+    # 프로그램 정보 (여기서만 수정하면 됩니다!)
+    programs = {
+        1: {"name": "설악산 단풍 트레킹", "period": "2026년 10월 11일 (토)", "desc": "가을 단풍이 가장 아름다운 설악산에서 진행하는 트레킹 프로그램입니다.", "max": 30, "emoji": "🍁", "deadline": date(2026, 10, 1), "price": 85000, "image": "https://picsum.photos/id/1015/800/400"},
+        2: {"name": "제주 올레길 걷기", "period": "2026년 4월 18일 (토)", "desc": "제주의 봄바람과 함께 올레길을 걸으며 생태를 배우는 프로그램입니다.", "max": 25, "emoji": "🌺", "deadline": date(2026, 4, 10), "price": 95000, "image": "https://picsum.photos/id/1016/800/400"},
+        3: {"name": "강원도 DMZ 생태탐방", "period": "2026년 7월 25일 (토)", "desc": "DMZ의 특별한 생태계를 안전하게 탐방하는 여름 프로그램입니다.", "max": 20, "emoji": "🌲", "deadline": date(2026, 7, 15), "price": 120000, "image": "https://picsum.photos/id/1018/800/400"},
+        4: {"name": "부산 해안 생태투어", "period": "2026년 9월 20일 (일)", "desc": "부산의 아름다운 해안 생태계를 배우고 보호 활동을 하는 프로그램입니다.", "max": 35, "emoji": "🌊", "deadline": date(2026, 9, 10), "price": 75000, "image": "https://picsum.photos/id/101/800/400"},
+        5: {"name": "지리산 둘레길 탐방", "period": "2026년 11월 8일 (토)", "desc": "지리산의 맑은 공기와 함께 둘레길을 걷는 가을 프로그램입니다.", "max": 28, "emoji": "🏔️", "deadline": date(2026, 11, 1), "price": 65000, "image": "https://picsum.photos/id/133/800/400"}
+    }
+
+    cols = st.columns(2)
+
+    for idx, prog in programs.items():
+        current = len(df[df["프로그램"] == prog["name"]]) if not df.empty else 0
+        is_closed = date.today() > prog["deadline"]
+        is_full = current >= prog["max"]
+
+        with cols[(idx-1) % 2]:
+            with st.container(border=True):
+                st.markdown(f'<img src="{prog["image"]}" class="program-image">', unsafe_allow_html=True)
+                
+                st.markdown(f"""
+                    <h3>{prog['emoji']} {prog['name']}</h3>
+                    <p><strong>📅 {prog['period']}</strong></p>
+                    <p>{prog['desc']}</p>
+                    <p><small>참가비: {prog['price']:,}원 | 최대 인원: {prog['max']}명 | 현재 신청: {current}명</small></p>
+                """, unsafe_allow_html=True)
+
+                if is_closed:
+                    st.markdown(f'<p class="deadline">🔒 접수 마감되었습니다 ({prog["deadline"]})</p>', unsafe_allow_html=True)
+                    st.button("신청 불가", disabled=True, use_container_width=True)
+                elif is_full:
+                    st.markdown('<p class="full">🔒 정원이 마감되었습니다</p>', unsafe_allow_html=True)
+                    st.button("신청 불가", disabled=True, use_container_width=True)
+                else:
+                    if st.button(f"✨ {prog['name']} 신청하기", key=f"apply_{idx}", use_container_width=True):
+                        st.session_state.selected_program = prog
+                        st.rerun()
+
+    # 신청 폼
+    if "selected_program" in st.session_state:
+        prog = st.session_state.selected_program
+        st.divider()
+        st.subheader(f"📝 {prog['name']} 신청하기")
+        st.success(f"📅 신청 날짜: **{prog['period']}** | 참가비: **{prog['price']:,}원**")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            이름 = st.text_input("이름", placeholder="오기석")
+        with col2:
+            전화번호 = st.text_input("전화번호", placeholder="010-1234-5678")
+
+        col3, col4 = st.columns(2)
+        with col3:
+            이메일 = st.text_input("이메일", placeholder="example@email.com")
+        with col4:
+            생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
+
+        요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
+
+        if st.button("✅ 최종 신청하기", type="primary", use_container_width=True):
+            if 이름.strip() and 전화번호.strip() and 이메일.strip():
+                신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M")
+                
+                새신청 = pd.DataFrame([{
+                    "신청시간": 신청시간,
+                    "프로그램": prog["name"],
+                    "날짜": prog["period"],
+                    "이름": 이름.strip(),
+                    "전화번호": 전화번호.strip(),
+                    "이메일": 이메일.strip(),
+                    "생년월일": 생년월일,
+                    "요청사항": 요청사항,
+                    "금액": prog["price"]
+                }])
+                
+                if df.empty:
+                    새신청.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                else:
+                    pd.concat([df, 새신청], ignore_index=True).to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                
+                st.balloons()
+                st.success(f"🎉 {이름.strip()}님! {prog['name']} 신청이 완료되었습니다!")
+                
+                time.sleep(2)
+                del st.session_state.selected_program
+                st.rerun()
+            else:
+                st.error("이름, 전화번호, 이메일을 모두 입력해주세요!")
+
+# ====================== 내 신청 확인 / 취소 ======================
+elif menu == "🔄 내 신청 확인 / 취소":
+    st.title("🔄 내 신청 확인 / 취소")
+    phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
+
+    if phone:
+        my_df = df[df["전화번호"].astype(str).str.strip() == phone.strip()]
+        if my_df.empty:
+            st.warning("해당 전화번호로 신청된 내용이 없습니다.")
+        else:
+            for i, row in my_df.iterrows():
+                with st.container(border=True):
+                    st.write(f"**{row['프로그램']}** | {row['날짜']} | {row.get('금액', 0):,}원")
+                    st.write(f"신청일시: {row['신청시간']}")
+                    if st.button(f"❌ 이 신청 취소하기", key=f"cancel_{i}"):
+                        df = df.drop(i)
+                        df.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                        st.success("✅ 신청이 취소되었습니다!")
+                        st.rerun()
+
+# ====================== 관리자 페이지 ======================
+elif menu == "🔑 관리자 페이지":
+    st.title("🔑 관리자 페이지")
+    st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: admin1234)")
+
+    admin_id = st.text_input("관리자 아이디", placeholder="admin")
+    admin_pw = st.text_input("관리자 비밀번호", type="password")
+
+    if st.button("로그인", type="primary", use_container_width=True):
+        if admin_id == "admin" and admin_pw == "admin1234":
+            st.success("✅ 관리자 로그인 성공!")
+            st.divider()
+            st.subheader("📊 전체 신청 관리")
+
+            if df.empty:
+                st.info("아직 신청된 내용이 없습니다.")
+            else:
+                search_term = st.text_input("🔍 검색 (이름, 전화번호, 프로그램명)", "")
+                if search_term:
+                    filtered_df = df[
+                        df["이름"].astype(str).str.contains(search_term, case=False, na=False) |
+                        df["전화번호"].astype(str).str.contains(search_term, case=False, na=False) |
+                        df["프로그램"].astype(str).str.contains(search_term, case=False, na=False)
+                    ]
+                else:
+                    filtered_df = df
+
+                st.dataframe(filtered_df.sort_values(by="신청시간", ascending=False), use_container_width=True, height=700)
+                st.success(f"총 {len(filtered_df)} 건의 신청이 있습니다.")
+                
+                csv = filtered_df.to_csv(index=False, encoding="utf-8-sig")
+                st.download_button("📥 전체 신청 목록 다운로드", csv, "전체_신청목록.csv", "text/csv")
+        else:
+            st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
