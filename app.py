@@ -50,11 +50,11 @@ if menu == "🏠 프로그램 목록":
 
     # 프로그램 정보 (여기서만 수정하면 됩니다!)
     programs = {
-        1: {"name": "정기 생태관광(5월)", "period": "2026년 5월 23일 (토) ~ 24일 (일)", "desc": "가을 단풍이 가장 아름다운 설악산에서 진행하는 트레킹 프로그램입니다.", "max": 30, "emoji": "🍁", "deadline": date(2026, 10, 1), "price": 85000, "image": "https://picsum.photos/id/1015/800/400"},
-        2: {"name": "정기 생태관광(6월)", "period": "2026년 4월 18일 (토)", "desc": "제주의 봄바람과 함께 올레길을 걸으며 생태를 배우는 프로그램입니다.", "max": 25, "emoji": "🌺", "deadline": date(2026, 4, 10), "price": 95000, "image": "https://picsum.photos/id/1016/800/400"},
-        3: {"name": "강원도 DMZ 생태탐방", "period": "2026년 7월 25일 (토)", "desc": "DMZ의 특별한 생태계를 안전하게 탐방하는 여름 프로그램입니다.", "max": 20, "emoji": "🌲", "deadline": date(2026, 7, 15), "price": 120000, "image": "https://picsum.photos/id/1018/800/400"},
-        4: {"name": "부산 해안 생태투어", "period": "2026년 9월 20일 (일)", "desc": "부산의 아름다운 해안 생태계를 배우고 보호 활동을 하는 프로그램입니다.", "max": 35, "emoji": "🌊", "deadline": date(2026, 9, 10), "price": 75000, "image": "https://picsum.photos/id/101/800/400"},
-        5: {"name": "지리산 둘레길 탐방", "period": "2026년 11월 8일 (토)", "desc": "지리산의 맑은 공기와 함께 둘레길을 걷는 가을 프로그램입니다.", "max": 28, "emoji": "🏔️", "deadline": date(2026, 11, 1), "price": 65000, "image": "https://picsum.photos/id/133/800/400"}
+        1: {"name": "정기 생태관광(5월)", "period": "2026년 5월 23일 (토) ~ 24일 (일)", "desc": "가을 단풍이 가장 아름다운 설악산에서 진행하는 트레킹 프로그램입니다.", "max": 30, "emoji": "🍁", "deadline": date(2026, 10, 1), "price": 85000, "image": "https://raw.githubusercontent.com/sombal/ecotourism-app/main/images/양구1.jpg"},
+        2: {"name": "정기 생태관광(6월)", "period": "2026년 4월 18일 (토)", "desc": "제주의 봄바람과 함께 올레길을 걸으며 생태를 배우는 프로그램입니다.", "max": 25, "emoji": "🌺", "deadline": date(2026, 4, 10), "price": 95000, "image": "image": "https://raw.githubusercontent.com/sombal/ecotourism-app/main/images/고창.jpg"},
+        3: {"name": "강원도 DMZ 생태탐방", "period": "2026년 7월 25일 (토)", "desc": "DMZ의 특별한 생태계를 안전하게 탐방하는 여름 프로그램입니다.", "max": 20, "emoji": "🌲", "deadline": date(2026, 7, 15), "price": 120000, "image": "image": "https://raw.githubusercontent.com/sombal/ecotourism-app/main/images/괴산.jpg"},
+        4: {"name": "부산 해안 생태투어", "period": "2026년 9월 20일 (일)", "desc": "부산의 아름다운 해안 생태계를 배우고 보호 활동을 하는 프로그램입니다.", "max": 35, "emoji": "🌊", "deadline": date(2026, 9, 10), "price": 75000, "image": "image": "https://raw.githubusercontent.com/sombal/ecotourism-app/main/images/양구2.jpg"},
+        5: {"name": "지리산 둘레길 탐방", "period": "2026년 11월 8일 (토)", "desc": "지리산의 맑은 공기와 함께 둘레길을 걷는 가을 프로그램입니다.", "max": 28, "emoji": "🏔️", "deadline": date(2026, 11, 1), "price": 65000, "image": "image": "https://raw.githubusercontent.com/sombal/ecotourism-app/main/images/순천.jpg"}
     }
 
     cols = st.columns(2)
