@@ -1,0 +1,8 @@
+# Google Drive 임시 파일 무시
+*.tmp.driveupload
+*.tmp.driveupload.*
+
+# 기타 불필요한 파일
+__pycache__/
+*.pyc
+.DS_Store
