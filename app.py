@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, date
 import time
 
-st.set_page_config(page_title="경남 생태관광", page_icon="🌿", layout="wide")
+st.set_page_config(page_title="생태관광 프로그램 신청", page_icon="🌿", layout="wide")
 
 st.markdown("""
     <style>
@@ -24,7 +24,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 경남 생태관광 신청 시스템\n버전 5.0 - 최종판")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.0")
 
 # ====================== 데이터 불러오기 ======================
 try:
@@ -34,8 +34,8 @@ except:
 
 # ====================== 프로그램 목록 (메인 페이지) ======================
 if menu == "🏠 프로그램 목록":
-    st.markdown('<p class="title">🌿 경남 생태관광</p>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">자연과 함께하는 특별한 경험</p>', unsafe_allow_html=True)
+    st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
 
     # 공지사항
     st.markdown("""
@@ -43,14 +43,14 @@ if menu == "🏠 프로그램 목록":
             <strong>📢 공지사항 및 안내</strong><br>
             • 모든 프로그램은 <strong>선착순</strong>으로 진행됩니다.<br>
             • 취소는 신청일 기준 <strong>7일 전</strong>까지 가능합니다.<br>
-            • 날씨에 따라 일정이 변경될 수 있으니 사전 연락 부탁드립니다.<br>
-            • 문의 : 010-1234-5678
+            • 날씨에 따라 일정이 변경될 수 있습니다.<br>
+            • 문의 : 02-723-8677
         </div>
     """, unsafe_allow_html=True)
 
     # 프로그램 정보 (여기서만 수정하면 됩니다!)
     programs = {
-        1: {"name": "설악산 단풍 트레킹", "period": "2026년 10월 11일 (토)", "desc": "가을 단풍이 가장 아름다운 설악산에서 진행하는 트레킹 프로그램입니다.", "max": 30, "emoji": "🍁", "deadline": date(2026, 10, 1), "price": 85000, "image": "https://picsum.photos/id/1015/800/400"},
+        1: {"name": "정기 생태관광(5월)", "period": "2026년 5월 23일(토) ~ 24일(일)", "desc": "가을 단풍이 가장 아름다운 설악산에서 진행하는 트레킹 프로그램입니다.", "max": 30, "emoji": "🍁", "deadline": date(2026, 10, 1), "price": 85000, "image": "https://picsum.photos/id/1015/800/400"},
         2: {"name": "제주 올레길 걷기", "period": "2026년 4월 18일 (토)", "desc": "제주의 봄바람과 함께 올레길을 걸으며 생태를 배우는 프로그램입니다.", "max": 25, "emoji": "🌺", "deadline": date(2026, 4, 10), "price": 95000, "image": "https://picsum.photos/id/1016/800/400"},
         3: {"name": "강원도 DMZ 생태탐방", "period": "2026년 7월 25일 (토)", "desc": "DMZ의 특별한 생태계를 안전하게 탐방하는 여름 프로그램입니다.", "max": 20, "emoji": "🌲", "deadline": date(2026, 7, 15), "price": 120000, "image": "https://picsum.photos/id/1018/800/400"},
         4: {"name": "부산 해안 생태투어", "period": "2026년 9월 20일 (일)", "desc": "부산의 아름다운 해안 생태계를 배우고 보호 활동을 하는 프로그램입니다.", "max": 35, "emoji": "🌊", "deadline": date(2026, 9, 10), "price": 75000, "image": "https://picsum.photos/id/101/800/400"},
