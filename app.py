@@ -10,12 +10,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# ====================== 예쁜 테마 적용 ======================
+# ====================== 예쁜 테마 ======================
 st.markdown("""
     <style>
     .main {background-color: #f0f7f4 !important;}
     
-    /* 프로그램 카드 디자인 */
     .program-card {
         background-color: white; 
         padding: 25px; 
@@ -41,7 +40,6 @@ st.markdown("""
         margin-bottom: 18px;
     }
     
-    /* 버튼 예쁘게 */
     .stButton > button {
         background-color: #1a5f3a !important;
         color: white !important;
@@ -55,20 +53,12 @@ st.markdown("""
         background-color: #14532d !important;
     }
     
-    /* 공지사항 박스 */
     .notice {
         background-color: #fff8e1; 
         padding: 20px; 
         border-radius: 12px; 
         border-left: 6px solid #ffc107;
         margin-bottom: 30px;
-    }
-    
-    /* 입력창 스타일 */
-    .stTextInput > div > div > input,
-    .stDateInput > div > div > input,
-    .stTextArea > div > div > textarea {
-        border-radius: 8px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -78,7 +68,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.6 - 예쁜 테마 적용")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.6 - 예쁜 테마")
 
 # ====================== 데이터 불러오기 ======================
 try:
@@ -91,11 +81,11 @@ try:
 except:
     waitlist = pd.DataFrame(columns=["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형", "대기순위"])
 
-# ====================== 페이지 상태 관리 ======================
+# ====================== 페이지 상태 ======================
 if "page" not in st.session_state:
     st.session_state.page = "main"
 
-# ====================== 메인 페이지 (프로그램 목록) ======================
+# ====================== 프로그램 목록 ======================
 if st.session_state.page == "main":
     st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
@@ -181,115 +171,4 @@ elif st.session_state.page == "apply":
     with col4:
         생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
 
-    요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
-
-    btn_text = f"⏳ 대기자로 신청하기 (현재 {len(waitlist[waitlist['프로그램'] == prog['name']])}명 대기)" if is_wait else "✅ 최종 신청하기"
-    if st.button(btn_text, type="primary", use_container_width=True):
-        if 이름.strip() and 전화번호.strip() and 이메일.strip():
-            신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M")
-            유형 = "대기자" if is_wait else "정상신청"
-            current_wait = len(waitlist[waitlist["프로그램"] == prog["name"]]) if not waitlist.empty else 0
-            대기순위 = current_wait + 1 if is_wait else None
-
-            새신청 = pd.DataFrame([{
-                "신청시간": 신청시간,
-                "프로그램": prog["name"],
-                "날짜": prog["period"],
-                "이름": 이름.strip(),
-                "전화번호": 전화번호.strip(),
-                "이메일": 이메일.strip(),
-                "생년월일": 생년월일,
-                "요청사항": 요청사항,
-                "금액": prog["price"],
-                "유형": 유형,
-                "대기순위": 대기순위
-            }])
-
-            if is_wait:
-                if waitlist.empty:
-                    새신청.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
-                else:
-                    pd.concat([waitlist, 새신청], ignore_index=True).to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
-                st.success(f"🎉 {이름.strip()}님! {prog['name']} 대기자 {대기순위}순위 신청이 완료되었습니다!")
-            else:
-                if df.empty:
-                    새신청.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
-                else:
-                    pd.concat([df, 새신청], ignore_index=True).to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
-                st.balloons()
-                st.success(f"🎉 {이름.strip()}님! {prog['name']} 신청이 완료되었습니다!")
-            
-            time.sleep(2)
-            st.session_state.page = "main"
-            for key in ["selected_program", "is_waitlist"]:
-                if key in st.session_state:
-                    del st.session_state[key]
-            st.rerun()
-        else:
-            st.error("이름, 전화번호, 이메일을 모두 입력해주세요!")
-
-    if st.button("← 프로그램 목록으로 돌아가기"):
-        st.session_state.page = "main"
-        for key in ["selected_program", "is_waitlist"]:
-            if key in st.session_state:
-                del st.session_state[key]
-        st.rerun()
-
-# ====================== 내 신청 확인 / 취소 ======================
-elif menu == "🔄 내 신청 확인 / 취소":
-    st.title("🔄 내 신청 확인 / 취소")
-    phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
-
-    if phone:
-        my_normal = df[df["전화번호"].astype(str).str.strip() == phone.strip()]
-        my_wait = waitlist[waitlist["전화번호"].astype(str).str.strip() == phone.strip()] if not waitlist.empty else pd.DataFrame()
-
-        if my_normal.empty and my_wait.empty:
-            st.warning("해당 전화번호로 신청된 내용이 없습니다.")
-        else:
-            if not my_normal.empty:
-                st.subheader("✅ 정상 신청")
-                for i, row in my_normal.iterrows():
-                    with st.container(border=True):
-                        st.write(f"**{row['프로그램']}** | {row['날짜']} | {row.get('금액', 0):,}원")
-                        st.write(f"신청일시: {row['신청시간']}")
-                        if st.button(f"❌ 이 신청 취소하기", key=f"cancel_normal_{i}"):
-                            df = df.drop(i)
-                            df.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
-                            st.success("✅ 정상 신청이 취소되었습니다!")
-                            st.rerun()
-
-            if not my_wait.empty:
-                st.subheader("⏳ 대기자 신청")
-                for i, row in my_wait.iterrows():
-                    with st.container(border=True):
-                        st.write(f"**{row['프로그램']}** 대기자 | {row.get('대기순위', 'N/A')}순위 | {row['날짜']}")
-                        st.write(f"신청일시: {row['신청시간']}")
-                        if st.button(f"❌ 대기자 신청 취소하기", key=f"cancel_wait_{i}"):
-                            waitlist = waitlist.drop(i)
-                            waitlist.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
-                            st.success("✅ 대기자 신청이 취소되었습니다!")
-                            st.rerun()
-
-# ====================== 관리자 페이지 ======================
-elif menu == "🔑 관리자 페이지":
-    st.title("🔑 관리자 페이지")
-    st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: ecotour8677!)")
-
-    admin_id = st.text_input("관리자 아이디", placeholder="admin")
-    admin_pw = st.text_input("관리자 비밀번호", type="password")
-
-    if st.button("로그인", type="primary", use_container_width=True):
-        if admin_id == "admin" and admin_pw == "ecotour8677!":
-            st.success("✅ 관리자 로그인 성공!")
-            st.divider()
-            st.subheader("📊 전체 신청 관리")
-            if not df.empty:
-                st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True)
-            st.subheader("⏳ 대기자 목록 (신청 순서대로)")
-            if not waitlist.empty:
-                st.dataframe(waitlist.sort_values(by=["프로그램", "대기순위"]), use_container_width=True)
-            else:
-                st.info("현재 대기자가 없습니다.")
-        else:
-            st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
+    요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식
