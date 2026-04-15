@@ -3,52 +3,73 @@ import pandas as pd
 from datetime import datetime, date
 import time
 
-# ====================== 테마 강제 고정 (Light Mode) ======================
+# ====================== 페이지 설정 ======================
 st.set_page_config(
     page_title="생태관광 프로그램 신청",
     page_icon="🌿",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items=None
+    layout="wide"
 )
 
-# 다크모드 강제 해제 + 밝은 테마 고정
+# ====================== 예쁜 테마 적용 ======================
 st.markdown("""
     <style>
-    /* 전체 배경을 항상 밝게 고정 */
-    .stApp {
-        background-color: #f8f9fa !important;
+    .main {background-color: #f0f7f4 !important;}
+    
+    /* 프로그램 카드 디자인 */
+    .program-card {
+        background-color: white; 
+        padding: 25px; 
+        border-radius: 16px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        margin-bottom: 20px; 
+        border: 1px solid #e0e0e0;
+        transition: transform 0.2s;
+    }
+    .program-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     }
     
-    /* 사이드바도 밝은 색상으로 고정 */
-    section[data-testid="stSidebar"] {
-        background-color: #ffffff !important;
+    .title {color: #1a5f3a; font-size: 46px; font-weight: bold; text-align: center; margin-bottom: 8px;}
+    .subtitle {color: #2e7d32; text-align: center; font-size: 21px; margin-bottom: 35px;}
+    
+    .program-image {
+        width: 100%; 
+        height: 220px; 
+        object-fit: cover; 
+        border-radius: 12px; 
+        margin-bottom: 18px;
     }
     
-    /* 입력창 배경도 밝게 */
-    .stTextInput > div > div > input,
-    .stDateInput > div > div > input,
-    .stTextArea > div > div > textarea {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* 버튼 색상도 선명하게 */
+    /* 버튼 예쁘게 */
     .stButton > button {
         background-color: #1a5f3a !important;
         color: white !important;
+        font-size: 16px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        width: 100%;
+    }
+    .stButton > button:hover {
+        background-color: #14532d !important;
     }
     
-    .main {background-color: #f8f9fa !important;}
+    /* 공지사항 박스 */
+    .notice {
+        background-color: #fff8e1; 
+        padding: 20px; 
+        border-radius: 12px; 
+        border-left: 6px solid #ffc107;
+        margin-bottom: 30px;
+    }
     
-    .program-card {background-color: white; padding: 20px; border-radius: 12px; 
-                   box-shadow: 0 3px 10px rgba(0,0,0,0.08); margin-bottom: 15px; border: 1px solid #e0e0e0;}
-    .title {color: #1a5f3a; font-size: 42px; font-weight: bold; text-align: center; margin-bottom: 10px;}
-    .subtitle {color: #2e7d32; text-align: center; font-size: 20px; margin-bottom: 30px;}
-    .program-image {width: 100%; height: 210px; object-fit: cover; border-radius: 10px; margin-bottom: 15px;}
-    .deadline {color: #d32f2f; font-weight: bold;}
-    .full {color: #d32f2f; font-weight: bold;}
-    .notice {background-color: #fff3cd; padding: 18px; border-radius: 10px; border-left: 6px solid #ffc107; margin-bottom: 25px;}
+    /* 입력창 스타일 */
+    .stTextInput > div > div > input,
+    .stDateInput > div > div > input,
+    .stTextArea > div > div > textarea {
+        border-radius: 8px !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -57,7 +78,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.5 - 밝은 테마 고정")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.6 - 예쁜 테마 적용")
 
 # ====================== 데이터 불러오기 ======================
 try:
@@ -133,7 +154,7 @@ if st.session_state.page == "main":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 신청 페이지 (별도 화면처럼) ======================
+# ====================== 신청 페이지 ======================
 elif st.session_state.page == "apply":
     if "selected_program" not in st.session_state:
         st.error("잘못된 접근입니다.")
@@ -214,13 +235,61 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 나머지 메뉴 ======================
+# ====================== 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
     st.title("🔄 내 신청 확인 / 취소")
     phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
-    # 기존 코드 유지 (필요하면 알려줘)
 
+    if phone:
+        my_normal = df[df["전화번호"].astype(str).str.strip() == phone.strip()]
+        my_wait = waitlist[waitlist["전화번호"].astype(str).str.strip() == phone.strip()] if not waitlist.empty else pd.DataFrame()
+
+        if my_normal.empty and my_wait.empty:
+            st.warning("해당 전화번호로 신청된 내용이 없습니다.")
+        else:
+            if not my_normal.empty:
+                st.subheader("✅ 정상 신청")
+                for i, row in my_normal.iterrows():
+                    with st.container(border=True):
+                        st.write(f"**{row['프로그램']}** | {row['날짜']} | {row.get('금액', 0):,}원")
+                        st.write(f"신청일시: {row['신청시간']}")
+                        if st.button(f"❌ 이 신청 취소하기", key=f"cancel_normal_{i}"):
+                            df = df.drop(i)
+                            df.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                            st.success("✅ 정상 신청이 취소되었습니다!")
+                            st.rerun()
+
+            if not my_wait.empty:
+                st.subheader("⏳ 대기자 신청")
+                for i, row in my_wait.iterrows():
+                    with st.container(border=True):
+                        st.write(f"**{row['프로그램']}** 대기자 | {row.get('대기순위', 'N/A')}순위 | {row['날짜']}")
+                        st.write(f"신청일시: {row['신청시간']}")
+                        if st.button(f"❌ 대기자 신청 취소하기", key=f"cancel_wait_{i}"):
+                            waitlist = waitlist.drop(i)
+                            waitlist.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
+                            st.success("✅ 대기자 신청이 취소되었습니다!")
+                            st.rerun()
+
+# ====================== 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: ecotour8677!)")
-    # 기존 코드 유지
+
+    admin_id = st.text_input("관리자 아이디", placeholder="admin")
+    admin_pw = st.text_input("관리자 비밀번호", type="password")
+
+    if st.button("로그인", type="primary", use_container_width=True):
+        if admin_id == "admin" and admin_pw == "ecotour8677!":
+            st.success("✅ 관리자 로그인 성공!")
+            st.divider()
+            st.subheader("📊 전체 신청 관리")
+            if not df.empty:
+                st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True)
+            st.subheader("⏳ 대기자 목록 (신청 순서대로)")
+            if not waitlist.empty:
+                st.dataframe(waitlist.sort_values(by=["프로그램", "대기순위"]), use_container_width=True)
+            else:
+                st.info("현재 대기자가 없습니다.")
+        else:
+            st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
