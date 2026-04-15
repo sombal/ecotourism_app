@@ -3,11 +3,44 @@ import pandas as pd
 from datetime import datetime, date
 import time
 
-st.set_page_config(page_title="생태관광 프로그램 신청", page_icon="🌿", layout="wide")
+# ====================== 테마 강제 고정 (Light Mode) ======================
+st.set_page_config(
+    page_title="생태관광 프로그램 신청",
+    page_icon="🌿",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items=None
+)
 
+# 다크모드 강제 해제 + 밝은 테마 고정
 st.markdown("""
     <style>
-    .main {background-color: #f8f9fa;}
+    /* 전체 배경을 항상 밝게 고정 */
+    .stApp {
+        background-color: #f8f9fa !important;
+    }
+    
+    /* 사이드바도 밝은 색상으로 고정 */
+    section[data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+    }
+    
+    /* 입력창 배경도 밝게 */
+    .stTextInput > div > div > input,
+    .stDateInput > div > div > input,
+    .stTextArea > div > div > textarea {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* 버튼 색상도 선명하게 */
+    .stButton > button {
+        background-color: #1a5f3a !important;
+        color: white !important;
+    }
+    
+    .main {background-color: #f8f9fa !important;}
+    
     .program-card {background-color: white; padding: 20px; border-radius: 12px; 
                    box-shadow: 0 3px 10px rgba(0,0,0,0.08); margin-bottom: 15px; border: 1px solid #e0e0e0;}
     .title {color: #1a5f3a; font-size: 42px; font-weight: bold; text-align: center; margin-bottom: 10px;}
@@ -24,7 +57,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.4 - 별도 신청 화면")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.5 - 밝은 테마 고정")
 
 # ====================== 데이터 불러오기 ======================
 try:
@@ -185,7 +218,7 @@ elif st.session_state.page == "apply":
 elif menu == "🔄 내 신청 확인 / 취소":
     st.title("🔄 내 신청 확인 / 취소")
     phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
-    # 기존 코드 유지 (필요시 추가)
+    # 기존 코드 유지 (필요하면 알려줘)
 
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
