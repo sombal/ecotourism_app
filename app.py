@@ -68,13 +68,17 @@ try:
 except:
     waitlist = pd.DataFrame(columns=["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형", "대기순위"])
 
-# ====================== 페이지 상태 초기화 (중요!) ======================
+# ====================== 페이지 상태 초기화 ======================
 if "page" not in st.session_state:
     st.session_state.page = "main"
+if "selected_program" not in st.session_state:
+    st.session_state.selected_program = None
+if "is_waitlist" not in st.session_state:
+    st.session_state.is_waitlist = False
 
 # ====================== 1. 프로그램 목록 ======================
-if menu == "🏠 프로그램 목록" or st.session_state.page == "main":
-    st.session_state.page = "main"   # 메뉴 선택 시 main으로 고정
+if menu == "🏠 프로그램 목록":
+    st.session_state.page = "main"
 
     st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
@@ -133,9 +137,9 @@ if menu == "🏠 프로그램 목록" or st.session_state.page == "main":
                         st.rerun()
 
 # ====================== 2. 신청 페이지 ======================
-elif menu == "🏠 프로그램 목록" and st.session_state.page == "apply" or st.session_state.page == "apply":
-    if "selected_program" not in st.session_state:
-        st.error("잘못된 접근입니다.")
+elif st.session_state.page == "apply":
+    if "selected_program" not in st.session_state or st.session_state.selected_program is None:
+        st.error("잘못된 접근입니다. 프로그램 목록에서 신청하기 버튼을 눌러주세요.")
         if st.button("← 프로그램 목록으로 돌아가기"):
             st.session_state.page = "main"
             st.rerun()
