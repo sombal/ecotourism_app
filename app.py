@@ -50,12 +50,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ====================== 사이드바 ======================
+# ====================== 사이드바 메뉴 ======================
 menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.6")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.7 - 메뉴 수정")
 
 # ====================== 데이터 불러오기 ======================
 try:
@@ -68,12 +68,8 @@ try:
 except:
     waitlist = pd.DataFrame(columns=["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형", "대기순위"])
 
-# ====================== 페이지 상태 ======================
-if "page" not in st.session_state:
-    st.session_state.page = "main"
-
-# ====================== 1. 프로그램 목록 ======================
-if st.session_state.page == "main":
+# ====================== 메뉴에 따라 화면 보여주기 ======================
+if menu == "🏠 프로그램 목록":
     st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
 
@@ -130,7 +126,7 @@ if st.session_state.page == "main":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 2. 신청 페이지 ======================
+# ====================== 신청 페이지 ======================
 elif st.session_state.page == "apply":
     if "selected_program" not in st.session_state:
         st.error("잘못된 접근입니다.")
@@ -211,7 +207,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 내 신청 확인 / 취소 ======================
+# ====================== 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
     st.title("🔄 내 신청 확인 / 취소")
     phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
@@ -247,7 +243,7 @@ elif menu == "🔄 내 신청 확인 / 취소":
                             st.success("✅ 대기자 신청이 취소되었습니다!")
                             st.rerun()
 
-# ====================== 4. 관리자 페이지 ======================
+# ====================== 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: ecotour8677!)")
