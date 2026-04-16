@@ -256,13 +256,13 @@ elif menu == "🔄 내 신청 확인 / 취소":
 # ====================== 4. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
-    st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: ecotour8677!)")
+    st.write("관리자 전용 페이지입니다")
 
-    admin_id = st.text_input("관리자 아이디", placeholder="admin")
-    admin_pw = st.text_input("관리자 비밀번호", type="password")
+    admin_id = st.text_input("관리자 아이디", placeholder="admin", value="")   # value="" 추가
+    admin_pw = st.text_input("관리자 비밀번호", type="password", placeholder="비밀번호를 입력하세요")
 
     if st.button("로그인", type="primary", use_container_width=True):
-        if admin_id == "admin" and admin_pw == "ecotour8677!":
+        if admin_id.strip() == "admin" and admin_pw == "ecotour8677!":
             st.success("✅ 관리자 로그인 성공!")
             st.divider()
             st.subheader("📊 전체 신청 관리")
