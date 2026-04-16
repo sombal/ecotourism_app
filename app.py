@@ -72,7 +72,7 @@ except:
 if "page" not in st.session_state:
     st.session_state.page = "main"
 
-# ====================== 프로그램 목록 ======================
+# ====================== 1. 프로그램 목록 ======================
 if st.session_state.page == "main":
     st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
@@ -115,7 +115,6 @@ if st.session_state.page == "main":
                 """, unsafe_allow_html=True)
 
                 if is_closed:
-                    st.markdown(f'<p class="deadline">🔒 접수 마감되었습니다 ({prog["deadline"]})</p>', unsafe_allow_html=True)
                     st.button("신청 불가", disabled=True, use_container_width=True)
                 elif is_full:
                     st.markdown('<p class="full">🔒 정원이 마감되었습니다</p>', unsafe_allow_html=True)
@@ -131,7 +130,7 @@ if st.session_state.page == "main":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 신청 페이지 ======================
+# ====================== 2. 신청 페이지 ======================
 elif st.session_state.page == "apply":
     if "selected_program" not in st.session_state:
         st.error("잘못된 접근입니다.")
@@ -212,7 +211,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 내 신청 확인 / 취소 ======================
+# ====================== 3. 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
     st.title("🔄 내 신청 확인 / 취소")
     phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
@@ -248,7 +247,7 @@ elif menu == "🔄 내 신청 확인 / 취소":
                             st.success("✅ 대기자 신청이 취소되었습니다!")
                             st.rerun()
 
-# ====================== 관리자 페이지 ======================
+# ====================== 4. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: ecotour8677!)")
