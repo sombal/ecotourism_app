@@ -256,7 +256,7 @@ elif menu == "🔄 내 신청 확인 / 취소":
 # ====================== 4. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
-    st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: ecotour8677!)")
+    st.write("관리자 전용 페이지입니다.")
 
     # 관리자 아이디 입력란을 빈 칸으로 유지
     admin_id = st.text_input("관리자 아이디", placeholder="admin", value="")
