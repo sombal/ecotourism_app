@@ -258,7 +258,6 @@ elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다.")
 
-    # 관리자 아이디 입력란을 빈 칸으로 유지
     admin_id = st.text_input("관리자 아이디", placeholder="admin", value="")
     admin_pw = st.text_input("관리자 비밀번호", type="password", placeholder="비밀번호를 입력하세요")
 
