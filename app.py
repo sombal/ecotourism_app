@@ -50,12 +50,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ====================== 사이드바 메뉴 ======================
+# ====================== 사이드바 ======================
 menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.8")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 1.9 - 별도 신청 화면")
 
 # ====================== 데이터 불러오기 ======================
 try:
@@ -68,7 +68,7 @@ try:
 except:
     waitlist = pd.DataFrame(columns=["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형", "대기순위"])
 
-# ====================== 페이지 상태 초기화 ======================
+# ====================== 페이지 상태 관리 ======================
 if "page" not in st.session_state:
     st.session_state.page = "main"
 if "selected_program" not in st.session_state:
@@ -76,10 +76,8 @@ if "selected_program" not in st.session_state:
 if "is_waitlist" not in st.session_state:
     st.session_state.is_waitlist = False
 
-# ====================== 1. 프로그램 목록 ======================
-if menu == "🏠 프로그램 목록":
-    st.session_state.page = "main"
-
+# ====================== 1. 프로그램 목록 페이지 ======================
+if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
     st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
 
@@ -136,10 +134,10 @@ if menu == "🏠 프로그램 목록":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 2. 신청 페이지 ======================
+# ====================== 2. 신청 페이지 (별도 화면) ======================
 elif st.session_state.page == "apply":
-    if "selected_program" not in st.session_state or st.session_state.selected_program is None:
-        st.error("잘못된 접근입니다. 프로그램 목록에서 신청 버튼을 눌러주세요.")
+    if st.session_state.selected_program is None:
+        st.error("잘못된 접근입니다.")
         if st.button("← 프로그램 목록으로 돌아가기"):
             st.session_state.page = "main"
             st.rerun()
@@ -258,8 +256,8 @@ elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다.")
 
-    admin_id = st.text_input("관리자 아이디", placeholder="admin", value="")
-    admin_pw = st.text_input("관리자 비밀번호", type="password", placeholder="비밀번호를 입력하세요")
+    admin_id = st.text_input("관리자 아이디", placeholder="admin")
+    admin_pw = st.text_input("관리자 비밀번호", type="password")
 
     if st.button("로그인", type="primary", use_container_width=True):
         if admin_id.strip() == "admin" and admin_pw == "ecotour8677!":
