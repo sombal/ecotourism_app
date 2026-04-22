@@ -215,15 +215,42 @@ elif menu == "🔄 내 신청 확인 / 취소":
                             st.success("대기자 신청이 취소되었습니다!")
                             st.rerun()
 
+# ====================== 4. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
+    st.write("관리자 전용 페이지입니다.")
+
     admin_id = st.text_input("관리자 아이디", placeholder="admin")
     admin_pw = st.text_input("관리자 비밀번호", type="password")
 
     if st.button("로그인", type="primary", use_container_width=True):
-        if admin_id == "admin" and admin_pw == "ecotour8677!":
-            st.success("로그인 성공!")
-            st.dataframe(df, use_container_width=True)
-            st.dataframe(waitlist, use_container_width=True)
+        if admin_id.strip() == "admin" and admin_pw == "ecotour8677!":
+            st.success("✅ 관리자 로그인 성공!")
+            st.divider()
+            
+            st.subheader("📊 전체 신청 목록")
+            if df.empty:
+                st.info("아직 정상 신청이 없습니다.")
+            else:
+                st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True, height=400)
+                st.success(f"총 {len(df)} 건의 정상 신청이 있습니다.")
+
+            st.divider()
+            st.subheader("⏳ 대기자 목록")
+            if waitlist.empty:
+                st.info("현재 대기자가 없습니다.")
+            else:
+                st.dataframe(waitlist.sort_values(by=["프로그램", "대기순위"]), use_container_width=True, height=400)
+                st.success(f"총 {len(waitlist)} 명의 대기자가 있습니다.")
+
+            # CSV 다운로드 버튼
+            if not df.empty:
+                csv_normal = df.to_csv(index=False, encoding="utf-8-sig")
+                st.download_button("📥 정상 신청 목록 다운로드", csv_normal, "신청목록.csv", "text/csv")
+            
+            if not waitlist.empty:
+                csv_wait = waitlist.to_csv(index=False, encoding="utf-8-sig")
+                st.download_button("📥 대기자 목록 다운로드", csv_wait, "대기자목록.csv", "text/csv")
+                
         else:
-            st.error("아이디 또는 비밀번호가 틀렸습니다.")
+            st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
