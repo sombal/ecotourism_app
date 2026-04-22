@@ -218,7 +218,7 @@ elif menu == "🔄 내 신청 확인 / 취소":
 # ====================== 4. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
-    st.write("관리자 전용 페이지입니다.")
+    st.write("관리자 전용 페이지입니다. (아이디: admin / 비밀번호: ecotour8677!)")
 
     admin_id = st.text_input("관리자 아이디", placeholder="admin")
     admin_pw = st.text_input("관리자 비밀번호", type="password")
@@ -235,6 +235,15 @@ elif menu == "🔑 관리자 페이지":
                 st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True, height=400)
                 st.success(f"총 {len(df)} 건의 정상 신청이 있습니다.")
 
+                # ✅ 엑셀 파일로 다운로드
+                excel_normal = df.to_excel(index=False)
+                st.download_button(
+                    label="📥 정상 신청 목록 엑셀로 다운로드",
+                    data=excel_normal,
+                    file_name="생태관광_정상신청목록.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
             st.divider()
             st.subheader("⏳ 대기자 목록")
             if waitlist.empty:
@@ -243,14 +252,14 @@ elif menu == "🔑 관리자 페이지":
                 st.dataframe(waitlist.sort_values(by=["프로그램", "대기순위"]), use_container_width=True, height=400)
                 st.success(f"총 {len(waitlist)} 명의 대기자가 있습니다.")
 
-            # CSV 다운로드 버튼
-            if not df.empty:
-                csv_normal = df.to_csv(index=False, encoding="utf-8-sig")
-                st.download_button("📥 정상 신청 목록 다운로드", csv_normal, "신청목록.csv", "text/csv")
-            
-            if not waitlist.empty:
-                csv_wait = waitlist.to_csv(index=False, encoding="utf-8-sig")
-                st.download_button("📥 대기자 목록 다운로드", csv_wait, "대기자목록.csv", "text/csv")
+                # ✅ 대기자 목록도 엑셀로 다운로드
+                excel_wait = waitlist.to_excel(index=False)
+                st.download_button(
+                    label="📥 대기자 목록 엑셀로 다운로드",
+                    data=excel_wait,
+                    file_name="생태관광_대기자목록.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
                 
         else:
             st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
