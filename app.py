@@ -25,7 +25,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.5 - 데이터 저장 강화")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.5 - 데이터 보호 + 입력 검증")
 
 # ====================== 데이터 안전하게 불러오기 ======================
 def load_data(filename, columns):
@@ -108,7 +108,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 2. 신청 페이지 (검증 + 안전 저장) ======================
+# ====================== 2. 신청 페이지 (입력 검증 + 안전 저장) ======================
 elif st.session_state.page == "apply":
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
@@ -196,7 +196,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 관리자 페이지 ======================
+# ====================== 3. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다.")
@@ -233,7 +233,7 @@ elif menu == "🔑 관리자 페이지":
         else:
             st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
 
-# ====================== 내 신청 확인 / 취소 ======================
+# ====================== 4. 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
     st.title("🔄 내 신청 확인 / 취소")
     phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
