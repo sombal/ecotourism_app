@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import time
+import re
 
 st.set_page_config(page_title="생태관광 프로그램 신청", page_icon="🌿", layout="wide")
 
@@ -24,7 +25,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.3 - 데이터 완전 보호")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.5 - 데이터 저장 강화")
 
 # ====================== 데이터 안전하게 불러오기 ======================
 def load_data(filename, columns):
@@ -107,7 +108,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 2. 신청 페이지 ======================
+# ====================== 2. 신청 페이지 (검증 + 안전 저장) ======================
 elif st.session_state.page == "apply":
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
@@ -130,7 +131,7 @@ elif st.session_state.page == "apply":
 
     col3, col4 = st.columns(2)
     with col3:
-        이메일 = st.text_input("이메일", placeholder="example@email.com")
+        이메일 = st.text_input("이메일", placeholder="example@mail.com")
     with col4:
         생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
 
@@ -138,7 +139,16 @@ elif st.session_state.page == "apply":
 
     btn_text = f"⏳ 대기자로 신청하기 (현재 {len(waitlist[waitlist['프로그램'] == prog['name']])}명 대기)" if is_wait else "✅ 최종 신청하기"
     if st.button(btn_text, type="primary", use_container_width=True):
-        if 이름.strip() and 전화번호.strip() and 이메일.strip():
+        phone_pattern = r"^010-\d{4}-\d{4}$"
+        email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+
+        if not 이름.strip():
+            st.error("이름을 입력해주세요.")
+        elif not re.match(phone_pattern, 전화번호.strip()):
+            st.error("전화번호는 '010-1234-5678' 형식으로 입력해주세요.")
+        elif not re.match(email_pattern, 이메일.strip()):
+            st.error("올바른 이메일 형식을 입력해주세요. (예: example@mail.com)")
+        else:
             신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M")
             유형 = "대기자" if is_wait else "정상신청"
             current_wait = len(waitlist[waitlist["프로그램"] == prog["name"]]) if not waitlist.empty else 0
@@ -159,20 +169,16 @@ elif st.session_state.page == "apply":
             }])
 
             if is_wait:
-                # 대기자 저장 - 기존 데이터와 합쳐서 저장
                 if waitlist.empty:
                     새신청.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
                 else:
-                    updated_waitlist = pd.concat([waitlist, 새신청], ignore_index=True)
-                    updated_waitlist.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
+                    pd.concat([waitlist, 새신청], ignore_index=True).to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
                 st.success(f"🎉 {이름.strip()}님! 대기자 {대기순위}순위 신청이 완료되었습니다!")
             else:
-                # 정상 신청 저장 - 기존 데이터와 합쳐서 저장
                 if df.empty:
                     새신청.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
                 else:
-                    updated_df = pd.concat([df, 새신청], ignore_index=True)
-                    updated_df.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                    pd.concat([df, 새신청], ignore_index=True).to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
                 st.balloons()
                 st.success(f"🎉 {이름.strip()}님! {prog['name']} 신청이 완료되었습니다!")
 
@@ -182,8 +188,6 @@ elif st.session_state.page == "apply":
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()
-        else:
-            st.error("이름, 전화번호, 이메일을 모두 입력해주세요!")
 
     if st.button("← 프로그램 목록으로 돌아가기"):
         st.session_state.page = "main"
@@ -192,7 +196,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 ======================
+# ====================== 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다.")
@@ -229,7 +233,7 @@ elif menu == "🔑 관리자 페이지":
         else:
             st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
 
-# ====================== 4. 내 신청 확인 / 취소 ======================
+# ====================== 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
     st.title("🔄 내 신청 확인 / 취소")
     phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
