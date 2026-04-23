@@ -24,7 +24,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.0 - 데이터 안전 + 엑셀 다운로드")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.1 - 데이터 안전")
 
 # ====================== 데이터 안전하게 불러오기 ======================
 def load_data(filename, columns):
@@ -49,9 +49,8 @@ if "selected_program" not in st.session_state:
 if "is_waitlist" not in st.session_state:
     st.session_state.is_waitlist = False
 
-# ====================== 프로그램 목록 ======================
+# ====================== 1. 프로그램 목록 ======================
 if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
-    # (프로그램 목록 코드는 이전과 동일 - 생략 없이 그대로 사용)
     st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
 
@@ -108,9 +107,8 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 신청 페이지 ======================
+# ====================== 2. 신청 페이지 ======================
 elif st.session_state.page == "apply":
-    # ... (이 부분은 이전 코드와 동일하게 유지 - 생략 없이 그대로 사용)
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
         if st.button("← 프로그램 목록으로 돌아가기"):
@@ -162,11 +160,11 @@ elif st.session_state.page == "apply":
 
             if is_wait:
                 pd.concat([waitlist, 새신청], ignore_index=True).to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
-                st.success(f"🎉 {이름.strip()}님! 대기자 {대기순위}순위 신청 완료!")
+                st.success(f"🎉 {이름.strip()}님! {prog['name']} 대기자 {대기순위}순위 신청이 완료되었습니다!")
             else:
                 pd.concat([df, 새신청], ignore_index=True).to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
                 st.balloons()
-                st.success(f"🎉 {이름.strip()}님! 신청 완료!")
+                st.success(f"🎉 {이름.strip()}님! {prog['name']} 신청이 완료되었습니다!")
 
             time.sleep(2)
             st.session_state.page = "main"
@@ -184,7 +182,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 관리자 페이지 (엑셀 다운로드 수정) ======================
+# ====================== 3. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다.")
@@ -204,7 +202,6 @@ elif menu == "🔑 관리자 페이지":
                 st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True, height=400)
                 st.success(f"총 {len(df)} 건의 정상 신청이 있습니다.")
 
-                # CSV 다운로드 (안전)
                 csv_normal = df.to_csv(index=False, encoding="utf-8-sig")
                 st.download_button("📥 정상 신청 목록 CSV 다운로드", csv_normal, "정상신청목록.csv", "text/csv")
 
@@ -221,3 +218,39 @@ elif menu == "🔑 관리자 페이지":
                 
         else:
             st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
+
+# ====================== 4. 내 신청 확인 / 취소 ======================
+elif menu == "🔄 내 신청 확인 / 취소":
+    st.title("🔄 내 신청 확인 / 취소")
+    phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
+
+    if phone:
+        my_normal = df[df["전화번호"].astype(str).str.strip() == phone.strip()]
+        my_wait = waitlist[waitlist["전화번호"].astype(str).str.strip() == phone.strip()] if not waitlist.empty else pd.DataFrame()
+
+        if my_normal.empty and my_wait.empty:
+            st.warning("해당 전화번호로 신청된 내용이 없습니다.")
+        else:
+            if not my_normal.empty:
+                st.subheader("✅ 정상 신청")
+                for i, row in my_normal.iterrows():
+                    with st.container(border=True):
+                        st.write(f"**{row['프로그램']}** | {row['날짜']} | {row.get('금액', 0):,}원")
+                        st.write(f"신청일시: {row['신청시간']}")
+                        if st.button(f"❌ 이 신청 취소하기", key=f"cancel_normal_{i}"):
+                            df = df.drop(i)
+                            df.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                            st.success("✅ 정상 신청이 취소되었습니다!")
+                            st.rerun()
+
+            if not my_wait.empty:
+                st.subheader("⏳ 대기자 신청")
+                for i, row in my_wait.iterrows():
+                    with st.container(border=True):
+                        st.write(f"**{row['프로그램']}** 대기자 | {row.get('대기순위', 'N/A')}순위 | {row['날짜']}")
+                        st.write(f"신청일시: {row['신청시간']}")
+                        if st.button(f"❌ 대기자 신청 취소하기", key=f"cancel_wait_{i}"):
+                            waitlist = waitlist.drop(i)
+                            waitlist.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
+                            st.success("✅ 대기자 신청이 취소되었습니다!")
+                            st.rerun()
