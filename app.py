@@ -124,7 +124,7 @@ elif st.session_state.page == "apply":
 
     col1, col2 = st.columns(2)
     with col1:
-        이름 = st.text_input("이름", placeholder="오기석")
+        이름 = st.text_input("이름", placeholder="홍길동")
     with col2:
         전화번호 = st.text_input("전화번호", placeholder="010-1234-5678")
 
