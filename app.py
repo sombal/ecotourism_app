@@ -24,13 +24,13 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.1 - 데이터 안전")
+st.sidebar.info("🌱 생태관광 프로그램 신청 시스템\n버전 2.3 - 데이터 완전 보호")
 
 # ====================== 데이터 안전하게 불러오기 ======================
 def load_data(filename, columns):
     try:
         df = pd.read_csv(filename, encoding="utf-8-sig")
-        df = df.dropna(how='all').reset_index(drop=True)   # 빈 행 제거
+        df = df.dropna(how='all').reset_index(drop=True)
         return df
     except:
         return pd.DataFrame(columns=columns)
@@ -159,10 +159,20 @@ elif st.session_state.page == "apply":
             }])
 
             if is_wait:
-                pd.concat([waitlist, 새신청], ignore_index=True).to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
-                st.success(f"🎉 {이름.strip()}님! {prog['name']} 대기자 {대기순위}순위 신청이 완료되었습니다!")
+                # 대기자 저장 - 기존 데이터와 합쳐서 저장
+                if waitlist.empty:
+                    새신청.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
+                else:
+                    updated_waitlist = pd.concat([waitlist, 새신청], ignore_index=True)
+                    updated_waitlist.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
+                st.success(f"🎉 {이름.strip()}님! 대기자 {대기순위}순위 신청이 완료되었습니다!")
             else:
-                pd.concat([df, 새신청], ignore_index=True).to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                # 정상 신청 저장 - 기존 데이터와 합쳐서 저장
+                if df.empty:
+                    새신청.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
+                else:
+                    updated_df = pd.concat([df, 새신청], ignore_index=True)
+                    updated_df.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
                 st.balloons()
                 st.success(f"🎉 {이름.strip()}님! {prog['name']} 신청이 완료되었습니다!")
 
