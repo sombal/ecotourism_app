@@ -89,7 +89,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                     <h3>{prog['emoji']} {prog['name']}</h3>
                     <p><strong>📅 {prog['period']}</strong></p>
                     <p>{prog['desc']}</p>
-                    <p><small>참가비: {prog['price']:,}원 | 최대 인원: {prog['max']}명 | 현재 신청: {current}명 | 대기자: {wait_count}명</small></p>
+                    <p><small>참가비: {prog['price']} | 최대 인원: {prog['max']}명 | 현재 신청: {current}명 | 대기자: {wait_count}명</small></p>
                 """, unsafe_allow_html=True)
 
                 if is_closed:
@@ -108,7 +108,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 2. 신청 페이지 (입력 검증 + 안전 저장) ======================
+# ====================== 2. 신청 페이지 ======================
 elif st.session_state.page == "apply":
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
@@ -121,7 +121,7 @@ elif st.session_state.page == "apply":
     is_wait = st.session_state.get("is_waitlist", False)
 
     st.subheader(f"📝 {prog['name']} {'대기자' if is_wait else ''} 신청하기")
-    st.success(f"📅 신청 날짜: **{prog['period']}** | 참가비: **{prog['price']:,}원**")
+    st.success(f"📅 신청 날짜: **{prog['period']}** | 참가비: **{prog['price']}**")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -249,7 +249,7 @@ elif menu == "🔄 내 신청 확인 / 취소":
                 st.subheader("✅ 정상 신청")
                 for i, row in my_normal.iterrows():
                     with st.container(border=True):
-                        st.write(f"**{row['프로그램']}** | {row['날짜']} | {row.get('금액', 0):,}원")
+                        st.write(f"**{row['프로그램']}** | {row['날짜']} | {row.get('금액', '')}")
                         st.write(f"신청일시: {row['신청시간']}")
                         if st.button(f"❌ 이 신청 취소하기", key=f"cancel_normal_{i}"):
                             df = df.drop(i)
