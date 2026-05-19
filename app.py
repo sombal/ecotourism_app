@@ -25,7 +25,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 생태관광 프로그램 신청 시스템")
+st.sidebar.info("🌱 한국생태관광협회")
 
 # ====================== 데이터 안전하게 불러오기 ======================
 def load_data(filename, columns):
@@ -61,16 +61,16 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
             • 모든 프로그램은 선착순 접수입니다.<br>
             • 정원이 마감된 프로그램은 대기자 신청이 가능합니다.<br>
             • 대기자는 신청 순서대로 우선순위가 부여됩니다.<br>
+            • 참가비 환불은 프로그램 운영 7일전까지 전액, 이후는 환불이 불가합니다.<br>
             • 문의 : 02-723-8677
         </div>
     """, unsafe_allow_html=True)
 
     programs = {
-        1: {"name": "정기 생태관광(5월)", "period": "2026년 5월 22일 (금) ~ 23일 (토)", "desc": "대암산 용늪과 함께하는 양구 생태관광 프로그램", "max": 3, "emoji": "🏔️", "deadline": date(2026, 5, 7), "price": 60000, "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
-        2: {"name": "정기 생태관광(6월)", "period": "2026년 6월 19일 (금) ~ 20일 (토)", "desc": "고창의 주민들과 함께하는 힐링 생태관광 프로그램", "max": 20, "emoji": "🌺", "deadline": date(2026, 6, 11), "price": 60000, "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
-        3: {"name": "정기 생태관광(7월)", "period": "2026년 7월 17일 (금) ~ 18일 (토)", "desc": "여름 하늘처럼 시원한 괴산호 트레킹 생태관광 프로그램", "max": 20, "emoji": "🏞️", "deadline": date(2026, 7, 9), "price": 60000, "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
-        4: {"name": "정기 생태관광(9월)", "period": "2026년 9월 11일 (금) ~ 12일 (토)", "desc": "국토 정중앙 양구의 가을을 만끽할 수 있는 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 9, 3), "price": 60000, "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
-        5: {"name": "정기 생태관광(10월)", "period": "2026년 10월 16일 (금) ~ 17일 (토)", "desc": "생태수도, 순천만의 아름다운 가을을 만나볼 수 있는 생태관광 프로그램", "max": 20, "emoji": "🍁", "deadline": date(2026, 10, 7), "price": 60000, "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/5.jpg"}
+        1: {"name": "정기 생태관광(6월)", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
+        2: {"name": "정기 생태관광(6월)", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
+        3: {"name": "정기 생태관광(6월)", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램(용늪 출입신청을 위해 2주전까지 신청마감)", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
+        4: {"name": "정기 생태관광(6월)", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램(용늪 출입신청을 위해 2주전까지 신청마감)", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
     }
 
     cols = st.columns(2)
