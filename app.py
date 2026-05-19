@@ -67,11 +67,11 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
     """, unsafe_allow_html=True)
 
     programs = {
-        1: {"name": "정기 생태관광(6월)", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
-        2: {"name": "정기 생태관광(6월)", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
-        3: {"name": "정기 생태관광(6월)", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램(용늪 출입신청을 위해 2주전까지 신청마감)", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
-        4: {"name": "정기 생태관광(6월)", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램(용늪 출입신청을 위해 2주전까지 신청마감)", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
-        5: {"name": "정기 생태관광(6월)", "period": "2026년 6월 18일 (목) ~ 6월 19일 (금)", "desc": "나는 개똥벌레~ 여름을 맞이하는 반딧불이 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 6, 11), "price": "회원:50,000 / 비회원:70,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+        1: {"name": "정기 생태관광(6월) 양구 1차", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
+        2: {"name": "정기 생태관광(6월) 양구 2차", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
+        3: {"name": "정기 생태관광(6월) 양구 3차", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
+        4: {"name": "정기 생태관광(6월) 양구 4차", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+        5: {"name": "정기 생태관광(6월) 고창", "period": "2026년 6월 18일 (목) ~ 6월 19일 (금)", "desc": "나는 개똥벌레~ 여름을 맞이하는 반딧불이 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 6, 11), "price": "회원:50,000 / 비회원:70,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
     }
 
     cols = st.columns(2)
@@ -104,7 +104,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                         st.rerun()
                 else:
                     if st.button(f"✨ {prog['name']} 신청하기", key=f"apply_{idx}", use_container_width=True):
-                        st.session_state.selected_program = prog
+                        st.session_state.selected_program = prog.copy()   # copy() 추가
                         st.session_state.is_waitlist = False
                         st.session_state.page = "apply"
                         st.rerun()
@@ -174,14 +174,14 @@ elif st.session_state.page == "apply":
                     새신청.to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
                 else:
                     pd.concat([waitlist, 새신청], ignore_index=True).to_csv("대기자목록.csv", index=False, encoding="utf-8-sig")
-                st.success(f"🎉 {이름.strip()}님! 대기자 {대기순위}순위 신청이 완료되었습니다!")
             else:
                 if df.empty:
                     새신청.to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
                 else:
                     pd.concat([df, 새신청], ignore_index=True).to_csv("신청목록.csv", index=False, encoding="utf-8-sig")
-                st.balloons()
-                st.success(f"🎉 {이름.strip()}님! {prog['name']} 신청이 완료되었습니다!")
+
+            st.balloons()
+            st.success(f"🎉 {이름.strip()}님! {prog['name']} 신청이 완료되었습니다!")
 
             time.sleep(2)
             st.session_state.page = "main"
@@ -197,7 +197,8 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 ======================
+# ====================== 관리자 페이지 & 내 신청 확인 부분 (생략 없이 포함) ======================
+# (관리자 페이지와 내 신청 확인 부분은 이전 코드와 동일)
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
     st.write("관리자 전용 페이지입니다.")
@@ -209,7 +210,6 @@ elif menu == "🔑 관리자 페이지":
         if admin_id.strip() == "admin" and admin_pw == "ecotour8677!":
             st.success("✅ 관리자 로그인 성공!")
             st.divider()
-            
             st.subheader("📊 전체 신청 목록")
             if df.empty:
                 st.info("아직 정상 신청이 없습니다.")
@@ -230,11 +230,9 @@ elif menu == "🔑 관리자 페이지":
 
                 csv_wait = waitlist.to_csv(index=False, encoding="utf-8-sig")
                 st.download_button("📥 대기자 목록 CSV 다운로드", csv_wait, "대기자목록.csv", "text/csv")
-                
         else:
             st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
 
-# ====================== 4. 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
     st.title("🔄 내 신청 확인 / 취소")
     phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
