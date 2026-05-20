@@ -148,31 +148,58 @@ elif st.session_state.page == "apply":
 
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
-    # ==================== 개인정보 동의 체크박스 ====================
     st.markdown("---")
+    st.markdown('<div class="consent-box">', unsafe_allow_html=True)
+    st.markdown("**📋 개인정보 제공 동의**")
     consent = st.checkbox("**개인정보 수집 및 이용에 동의합니다.** (필수)", 
                          help="이름, 연락처, 이메일 등 신청에 필요한 정보를 수집·이용하는 데 동의합니다.")
 
+    st.markdown("""
+    **수집하는 개인정보**  
+    • 이름, 전화번호, 이메일, 생년월일  
+
+    **이용 목적**  
+    • 프로그램 신청 접수 및 참가자 관리  
+    • 행사 안내 및 긴급 연락  
+
+    **보유 기간**  
+    • 프로그램 종료 후 1년간 보관 후 파기합니다.
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
+
     if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", 
                  type="primary", use_container_width=True, disabled=not consent):
+        
         phone_pattern = r"^010-\d{4}-\d{4}$"
         email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 
-        if not 이름.strip() or not re.match(phone_pattern, 전화번호.strip()) or not re.match(email_pattern, 이메일.strip()):
-            st.error("입력 정보를 확인해주세요.")
+        if not 이름 or not 전화번호 or not 이메일:
+            st.error("모든 필수 항목을 입력해주세요.")
+        elif not re.match(phone_pattern, 전화번호.strip()):
+            st.error("전화번호 형식을 확인해주세요. (010-1234-5678)")
+        elif not re.match(email_pattern, 이메일.strip()):
+            st.error("이메일 형식을 확인해주세요.")
         elif not consent:
             st.error("개인정보 제공 동의가 필요합니다.")
         else:
-            신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M")
+            신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             유형 = "대기자" if is_wait else "정상신청"
+            
             current_wait = len(waitlist[waitlist["프로그램"] == prog["name"]]) if not waitlist.empty else 0
             대기순위 = current_wait + 1 if is_wait else None
 
             새신청 = pd.DataFrame([{
-                "신청시간": 신청시간, "프로그램": prog["name"], "날짜": prog["period"],
-                "이름": 이름.strip(), "전화번호": 전화번호.strip(), "이메일": 이메일.strip(),
-                "생년월일": 생년월일, "요청사항": 요청사항, "금액": prog["price"],
-                "유형": 유형, "대기순위": 대기순위
+                "신청시간": 신청시간,
+                "프로그램": prog["name"],
+                "날짜": prog["period"],
+                "이름": 이름.strip(),
+                "전화번호": 전화번호.strip(),
+                "이메일": 이메일.strip(),
+                "생년월일": str(생년월일),
+                "요청사항": 요청사항,
+                "금액": prog["price"],
+                "유형": 유형,
+                "대기순위": 대기순위
             }])
 
             if is_wait:
