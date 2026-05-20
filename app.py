@@ -26,7 +26,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 6.1 - 프로그램 영구 저장")
+st.sidebar.info("🌱 한국생태관광협회\n버전 ")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
@@ -59,11 +59,13 @@ def load_programs():
         try:
             with open(PROGRAM_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                # deadline을 date 객체로 변환
-                for p in data.values():
+                # 키를 정수로 변환
+                programs = {int(k): v for k, v in data.items()}
+                # deadline 문자열을 date 객체로 변환
+                for p in programs.values():
                     if isinstance(p.get("deadline"), str):
                         p["deadline"] = date.fromisoformat(p["deadline"])
-                return data
+                return programs
         except:
             pass
     # 기본 프로그램
@@ -77,12 +79,11 @@ def load_programs():
 
 def save_programs(programs):
     try:
-        # date 객체를 문자열로 변환해서 저장
         data_to_save = {}
         for k, v in programs.items():
-            data_to_save[k] = v.copy()
-            if isinstance(data_to_save[k].get("deadline"), date):
-                data_to_save[k]["deadline"] = data_to_save[k]["deadline"].isoformat()
+            data_to_save[int(k)] = v.copy()
+            if isinstance(data_to_save[int(k)].get("deadline"), date):
+                data_to_save[int(k)]["deadline"] = data_to_save[int(k)]["deadline"].isoformat()
         with open(PROGRAM_FILE, "w", encoding="utf-8") as f:
             json.dump(data_to_save, f, ensure_ascii=False, indent=2)
         return True
@@ -123,6 +124,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
 
     cols = st.columns(2)
     for idx, prog in st.session_state.programs.items():
+        idx = int(idx)  # ← 여기서 문자열을 정수로 변환 (오류 해결!)
         current = len(df[df["프로그램"] == prog["name"]]) if not df.empty else 0
         wait_count = len(waitlist[waitlist["프로그램"] == prog["name"]]) if not waitlist.empty else 0
         is_closed = date.today() > prog["deadline"]
@@ -160,6 +162,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
 
 # ====================== 2. 신청 페이지 ======================
 elif st.session_state.page == "apply":
+    # (네가 준 코드 그대로 유지)
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
         if st.button("← 돌아가기"):
@@ -204,6 +207,7 @@ elif st.session_state.page == "apply":
 
     if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", 
                  type="primary", use_container_width=True, disabled=not consent):
+        # (신청 로직 그대로)
         phone_pattern = r"^010-\d{4}-\d{4}$"
         email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 
@@ -258,8 +262,9 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 ======================
+# ====================== 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
+    # (관리자 페이지 코드는 이전과 동일하게 유지)
     st.title("🔑 관리자 페이지")
 
     if not st.session_state.is_admin_logged_in:
@@ -292,7 +297,6 @@ elif menu == "🔑 관리자 페이지":
         with tab2:
             st.subheader("📝 프로그램 관리")
 
-            # 새 프로그램 추가
             with st.expander("➕ 새 프로그램 추가"):
                 n_name = st.text_input("프로그램 이름")
                 n_period = st.text_input("기간")
@@ -318,7 +322,6 @@ elif menu == "🔑 관리자 페이지":
                         st.success("✅ 새 프로그램이 추가되었습니다!")
                         st.rerun()
 
-            # 기존 프로그램 관리
             for pid in list(st.session_state.programs.keys()):
                 prog = st.session_state.programs[pid]
                 with st.expander(f"📌 {prog['name']}"):
