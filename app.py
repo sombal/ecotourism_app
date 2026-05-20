@@ -15,8 +15,6 @@ st.markdown("""
                    box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e0e0e0;}
     .title {color: #1a5f3a; font-size: 46px; font-weight: bold; text-align: center; margin-bottom: 8px;}
     .subtitle {color: #2e7d32; text-align: center; font-size: 21px; margin-bottom: 35px;}
-    .program-image {width: 100%; height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 18px;}
-    .stButton > button {background-color: #1a5f3a !important; color: white !important; font-size: 16px; padding: 12px 20px; border-radius: 10px; font-weight: bold; width: 100%;}
     .notice {background-color: #fff8e1; padding: 20px; border-radius: 12px; border-left: 6px solid #ffc107; margin-bottom: 30px;}
     </style>
 """, unsafe_allow_html=True)
@@ -26,7 +24,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 5.4 - deprecation 오류 수정")
+st.sidebar.info("🌱 한국생태관광협회\n버전 5.5 - 사진 업로드 & 표시 완전 수정")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
@@ -97,7 +95,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
 
         with cols[(idx-1) % 2]:
             with st.container(border=True):
-                # 사진 표시 (deprecation 오류 수정)
+                # ✅ 사진 표시 수정 (deprecation 오류 해결)
                 try:
                     st.image(prog["image"], width=600)
                 except:
@@ -142,12 +140,16 @@ elif st.session_state.page == "apply":
     st.success(f"📅 {prog['period']} | {prog['price']}")
 
     col1, col2 = st.columns(2)
-    with col1: 이름 = st.text_input("이름", placeholder="홍길동")
-    with col2: 전화번호 = st.text_input("전화번호", placeholder="010-1234-5678")
+    with col1: 
+        이름 = st.text_input("이름", placeholder="홍길동")
+    with col2: 
+        전화번호 = st.text_input("전화번호", placeholder="010-1234-5678")
 
     col3, col4 = st.columns(2)
-    with col3: 이메일 = st.text_input("이메일", placeholder="example@mail.com")
-    with col4: 생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
+    with col3: 
+        이메일 = st.text_input("이메일", placeholder="example@mail.com")
+    with col4: 
+        생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
 
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
@@ -249,10 +251,10 @@ elif menu == "🔑 관리자 페이지":
                             "max": n_max, "emoji": "🌿", "deadline": n_deadline,
                             "price": n_price, "image": image_path
                         }
-                        st.success("새 프로그램이 추가되었습니다!")
+                        st.success("✅ 새 프로그램이 추가되었습니다!")
                         st.rerun()
 
-            # 기존 프로그램 관리
+            # 기존 프로그램 수정/사진 변경
             for pid, prog in list(st.session_state.programs.items()):
                 with st.expander(f"📌 {prog['name']}"):
                     edit_name = st.text_input("이름", prog["name"], key=f"name_{pid}")
@@ -265,17 +267,18 @@ elif menu == "🔑 관리자 페이지":
                         with open(image_path, "wb") as f:
                             f.write(uploaded_edit.getbuffer())
                         prog["image"] = image_path
+                        st.success("사진이 변경되었습니다.")
 
                     col1, col2 = st.columns(2)
                     with col1:
                         if st.button("💾 수정 저장", key=f"save_{pid}"):
                             st.session_state.programs[pid] = {**prog, "name": edit_name, "period": edit_period, "desc": edit_desc}
-                            st.success("수정 완료!")
+                            st.success("✅ 수정 완료!")
                             st.rerun()
                     with col2:
                         if st.button("🗑 삭제", key=f"del_{pid}"):
                             del st.session_state.programs[pid]
-                            st.success("프로그램이 삭제되었습니다!")
+                            st.success("🗑 프로그램이 삭제되었습니다!")
                             st.rerun()
 
 # ====================== 4. 내 신청 확인 / 취소 ======================
