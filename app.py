@@ -16,6 +16,7 @@ st.markdown("""
     .title {color: #1a5f3a; font-size: 46px; font-weight: bold; text-align: center; margin-bottom: 8px;}
     .subtitle {color: #2e7d32; text-align: center; font-size: 21px; margin-bottom: 35px;}
     .notice {background-color: #fff8e1; padding: 20px; border-radius: 12px; border-left: 6px solid #ffc107; margin-bottom: 30px;}
+    .consent-box {background-color: #f0f8f0; padding: 20px; border-radius: 12px; border: 1px solid #c8e6c9;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -24,7 +25,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 5.6 - 개인정보 동의 + 보호정책")
+st.sidebar.info("🌱 한국생태관광협회\n버전 6.0 - 최종 안정화 버전")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
@@ -176,7 +177,7 @@ elif st.session_state.page == "apply":
         if not 이름 or not 전화번호 or not 이메일:
             st.error("모든 필수 항목을 입력해주세요.")
         elif not re.match(phone_pattern, 전화번호.strip()):
-            st.error("전화번호 형식을 확인해주세요. (010-1234-5678)")
+            st.error("전화번호 형식을 확인해주세요.")
         elif not re.match(email_pattern, 이메일.strip()):
             st.error("이메일 형식을 확인해주세요.")
         elif not consent:
@@ -184,7 +185,6 @@ elif st.session_state.page == "apply":
         else:
             신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             유형 = "대기자" if is_wait else "정상신청"
-            
             current_wait = len(waitlist[waitlist["프로그램"] == prog["name"]]) if not waitlist.empty else 0
             대기순위 = current_wait + 1 if is_wait else None
 
@@ -225,9 +225,8 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 ======================
+# ====================== 3. 관리자 페이지 (수정 안정화) ======================
 elif menu == "🔑 관리자 페이지":
-    # (관리자 페이지 코드는 이전과 동일 - 생략 없이 그대로)
     st.title("🔑 관리자 페이지")
 
     if not st.session_state.is_admin_logged_in:
@@ -260,6 +259,7 @@ elif menu == "🔑 관리자 페이지":
         with tab2:
             st.subheader("📝 프로그램 관리")
 
+            # 새 프로그램 추가
             with st.expander("➕ 새 프로그램 추가"):
                 n_name = st.text_input("프로그램 이름")
                 n_period = st.text_input("기간")
@@ -284,6 +284,7 @@ elif menu == "🔑 관리자 페이지":
                         st.success("✅ 새 프로그램이 추가되었습니다!")
                         st.rerun()
 
+            # 기존 프로그램 관리
             for pid, prog in list(st.session_state.programs.items()):
                 with st.expander(f"📌 {prog['name']}"):
                     edit_name = st.text_input("이름", prog["name"], key=f"name_{pid}")
@@ -295,12 +296,17 @@ elif menu == "🔑 관리자 페이지":
                         image_path = os.path.join(IMAGE_DIR, uploaded_edit.name)
                         with open(image_path, "wb") as f:
                             f.write(uploaded_edit.getbuffer())
-                        prog["image"] = image_path
+                        st.session_state.programs[pid]["image"] = image_path
+                        st.success("✅ 사진이 변경되었습니다!")
 
                     col1, col2 = st.columns(2)
                     with col1:
                         if st.button("💾 수정 저장", key=f"save_{pid}"):
-                            st.session_state.programs[pid] = {**prog, "name": edit_name, "period": edit_period, "desc": edit_desc}
+                            st.session_state.programs[pid].update({
+                                "name": edit_name,
+                                "period": edit_period,
+                                "desc": edit_desc
+                            })
                             st.success("✅ 수정 완료!")
                             st.rerun()
                     with col2:
@@ -345,12 +351,11 @@ elif menu == "🔄 내 신청 확인 / 취소":
                             st.success("취소되었습니다!")
                             st.rerun()
 
-# ====================== 사이트 하단 - 개인정보 보호정책 ======================
+# ====================== 사이트 하단 ======================
 st.markdown("---")
 st.markdown("""
     <p style="text-align: center; color: #666; font-size: 14px;">
         © 한국생태관광협회 | 
-        <a href="#" target="_blank" style="color: #1a5f3a;">개인정보 보호정책</a> | 
-        <a href="#" target="_blank" style="color: #1a5f3a;">이용약관</a>
+        <a href="#" style="color: #1a5f3a;">개인정보 보호정책</a>
     </p>
 """, unsafe_allow_html=True)
