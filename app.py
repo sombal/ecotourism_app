@@ -26,16 +26,15 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 3.1 - 데이터 안정화")
+st.sidebar.info("🌱 한국생태관광협회\n버전 4.0 - 프로그램 쉽게 수정")
 
-# ====================== Persistent Disk 설정 ======================
+# ====================== Persistent Disk ======================
 DATA_DIR = "/data"
 try:
     os.makedirs(DATA_DIR, exist_ok=True)
 except:
     DATA_DIR = "/tmp/data"
     os.makedirs(DATA_DIR, exist_ok=True)
-    st.sidebar.warning("⚠️ Persistent Disk 권한 문제로 임시 저장소를 사용합니다.")
 
 def load_data(filename, columns):
     full_path = os.path.join(DATA_DIR, filename)
@@ -56,20 +55,19 @@ def save_data(df, filename):
         st.error(f"💾 저장 실패: {e}")
         return False
 
-# ====================== 데이터 불러오기 ======================
-df = load_data("신청목록.csv", 
-    ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형"])
+# 데이터 로드
+df = load_data("신청목록.csv", ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형"])
+waitlist = load_data("대기자목록.csv", ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형", "대기순위"])
 
-waitlist = load_data("대기자목록.csv", 
-    ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형", "대기순위"])
-
-# ====================== 페이지 상태 ======================
-if "page" not in st.session_state:
-    st.session_state.page = "main"
-if "selected_program" not in st.session_state:
-    st.session_state.selected_program = None
-if "is_waitlist" not in st.session_state:
-    st.session_state.is_waitlist = False
+# ====================== 프로그램 관리 (세션 상태) ======================
+if "programs" not in st.session_state:
+    st.session_state.programs = {
+        1: {"name": "정기 생태관광(6월) 양구 1차", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
+        2: {"name": "정기 생태관광(6월) 양구 2차", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
+        3: {"name": "정기 생태관광(6월) 양구 3차", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
+        4: {"name": "정기 생태관광(6월) 양구 4차", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+        5: {"name": "정기 생태관광(6월) 고창", "period": "2026년 6월 18일 (목) ~ 6월 19일 (금)", "desc": "나는 개똥벌레~ 여름을 맞이하는 반딧불이 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 6, 11), "price": "회원:50,000 / 비회원:70,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+    }
 
 # ====================== 1. 프로그램 목록 ======================
 if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
@@ -81,22 +79,12 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
             <strong>📢 공지사항 및 안내</strong><br>
             • 모든 프로그램은 선착순 접수입니다.<br>
             • 정원이 마감된 프로그램은 대기자 신청이 가능합니다.<br>
-            • 대기자는 신청 순서대로 우선순위가 부여됩니다.<br>
-            • 참가비 환불은 프로그램 운영 7일전까지 전액 환불 가능, 이후는 환불이 불가합니다.<br>
             • 문의 : 02-723-8677
         </div>
     """, unsafe_allow_html=True)
 
-    programs = {
-        1: {"name": "정기 생태관광(6월) 양구 1차", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
-        2: {"name": "정기 생태관광(6월) 양구 2차", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
-        3: {"name": "정기 생태관광(6월) 양구 3차", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
-        4: {"name": "정기 생태관광(6월) 양구 4차", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
-    }
-
     cols = st.columns(2)
-
-    for idx, prog in programs.items():
+    for idx, prog in st.session_state.programs.items():
         current = len(df[df["프로그램"] == prog["name"]]) if not df.empty else 0
         wait_count = len(waitlist[waitlist["프로그램"] == prog["name"]]) if not waitlist.empty else 0
         is_closed = date.today() > prog["deadline"]
@@ -110,14 +98,14 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                     <h3>{prog['emoji']} {prog['name']}</h3>
                     <p><strong>📅 {prog['period']}</strong></p>
                     <p>{prog['desc']}</p>
-                    <p><small>참가비: {prog['price']} | 최대 인원: {prog['max']}명 | 현재 신청: {current}명 | 대기자: {wait_count}명</small></p>
+                    <p><small>참가비: {prog['price']} | 최대 인원: {prog['max']}명 | 현재: {current}명 | 대기: {wait_count}명</small></p>
                 """, unsafe_allow_html=True)
 
                 if is_closed:
                     st.button("✅ 모집 완료", disabled=True, use_container_width=True)
                 elif is_full:
                     st.markdown('<p class="full">🔒 정원이 마감되었습니다</p>', unsafe_allow_html=True)
-                    if st.button(f"⏳ 대기자로 신청하기 (현재 {wait_count}명)", key=f"wait_{idx}", use_container_width=True):
+                    if st.button(f"⏳ 대기자로 신청하기", key=f"wait_{idx}", use_container_width=True):
                         st.session_state.selected_program = prog.copy()
                         st.session_state.is_waitlist = True
                         st.session_state.page = "apply"
@@ -133,7 +121,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
 elif st.session_state.page == "apply":
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
-        if st.button("← 프로그램 목록으로 돌아가기"):
+        if st.button("← 돌아가기"):
             st.session_state.page = "main"
             st.rerun()
         st.stop()
@@ -142,7 +130,7 @@ elif st.session_state.page == "apply":
     is_wait = st.session_state.get("is_waitlist", False)
 
     st.subheader(f"📝 {prog['name']} {'대기자' if is_wait else ''} 신청하기")
-    st.success(f"📅 신청 날짜: **{prog['period']}** | 참가비: **{prog['price']}**")
+    st.success(f"📅 {prog['period']} | {prog['price']}")
 
     col1, col2 = st.columns(2)
     with col1: 이름 = st.text_input("이름", placeholder="홍길동")
@@ -154,8 +142,7 @@ elif st.session_state.page == "apply":
 
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
-    btn_text = f"⏳ 대기자로 신청하기" if is_wait else "✅ 최종 신청하기"
-    if st.button(btn_text, type="primary", use_container_width=True):
+    if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", type="primary", use_container_width=True):
         phone_pattern = r"^010-\d{4}-\d{4}$"
         email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 
@@ -202,11 +189,9 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 ======================
+# ====================== 3. 관리자 페이지 (프로그램 관리 포함) ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
-    st.write("관리자 전용 페이지입니다.")
-
     admin_id = st.text_input("관리자 아이디", placeholder="admin")
     admin_pw = st.text_input("관리자 비밀번호", type="password")
 
@@ -214,27 +199,72 @@ elif menu == "🔑 관리자 페이지":
         if admin_id.strip() == "admin" and admin_pw == "ecotour8677!":
             st.success("✅ 관리자 로그인 성공!")
             st.divider()
-            
-            st.subheader("📊 전체 신청 목록")
-            if df.empty:
-                st.info("아직 정상 신청이 없습니다.")
-            else:
-                st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True, height=400)
-                st.success(f"총 {len(df)} 건의 정상 신청이 있습니다.")
-                csv_normal = df.to_csv(index=False, encoding="utf-8-sig")
-                st.download_button("📥 정상 신청 목록 CSV 다운로드", csv_normal, "정상신청목록.csv", "text/csv")
 
-            st.divider()
-            st.subheader("⏳ 대기자 목록")
-            if waitlist.empty:
-                st.info("현재 대기자가 없습니다.")
-            else:
-                st.dataframe(waitlist.sort_values(by=["프로그램", "대기순위"]), use_container_width=True, height=400)
-                st.success(f"총 {len(waitlist)} 명의 대기자가 있습니다.")
-                csv_wait = waitlist.to_csv(index=False, encoding="utf-8-sig")
-                st.download_button("📥 대기자 목록 CSV 다운로드", csv_wait, "대기자목록.csv", "text/csv")
+            tab1, tab2, tab3 = st.tabs(["📋 전체 신청", "📝 프로그램 관리", "⏳ 대기자 목록"])
+
+            with tab1:
+                st.subheader("전체 신청 목록")
+                if df.empty:
+                    st.info("아직 신청이 없습니다.")
+                else:
+                    st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True)
+                    csv = df.to_csv(index=False, encoding="utf-8-sig")
+                    st.download_button("📥 CSV 다운로드", csv, "전체신청목록.csv", "text/csv")
+
+            with tab2:
+                st.subheader("📝 프로그램 관리")
+                st.info("여기서 프로그램을 추가·수정·삭제할 수 있습니다.")
+
+                # 새 프로그램 추가
+                with st.expander("➕ 새 프로그램 추가"):
+                    n_name = st.text_input("프로그램 이름*")
+                    n_period = st.text_input("기간* (예: 2026년 8월 10일)")
+                    n_desc = st.text_area("설명*")
+                    n_max = st.number_input("최대 인원*", min_value=1, value=15)
+                    n_deadline = st.date_input("신청 마감일*")
+                    n_price = st.text_input("참가비*", "회원:30,000 / 비회원:50,000")
+                    n_image = st.text_input("사진 URL*", "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/new.jpg")
+
+                    if st.button("✅ 프로그램 추가하기"):
+                        if n_name and n_period and n_desc:
+                            new_id = max(st.session_state.programs.keys()) + 1
+                            st.session_state.programs[new_id] = {
+                                "name": n_name, "period": n_period, "desc": n_desc,
+                                "max": int(n_max), "emoji": "🌿", "deadline": n_deadline,
+                                "price": n_price, "image": n_image
+                            }
+                            st.success("새 프로그램이 추가되었습니다!")
+                            st.rerun()
+
+                # 기존 프로그램 수정/삭제
+                st.subheader("기존 프로그램 목록")
+                for pid, p in list(st.session_state.programs.items()):
+                    with st.expander(f"📌 {p['name']}"):
+                        edit_name = st.text_input("이름", p['name'], key=f"e_name_{pid}")
+                        edit_period = st.text_input("기간", p['period'], key=f"e_period_{pid}")
+                        edit_desc = st.text_area("설명", p['desc'], key=f"e_desc_{pid}")
+                        edit_image = st.text_input("사진 URL", p['image'], key=f"e_image_{pid}")
+
+                        col_a, col_b = st.columns(2)
+                        with col_a:
+                            if st.button("💾 수정 저장", key=f"save_{pid}"):
+                                st.session_state.programs[pid] = {**p, "name": edit_name, "period": edit_period, 
+                                                                "desc": edit_desc, "image": edit_image}
+                                st.success("수정 완료!")
+                                st.rerun()
+                        with col_b:
+                            if st.button("🗑 삭제", key=f"del_{pid}"):
+                                if st.checkbox("정말 삭제하시겠습니까?", key=f"chk_{pid}"):
+                                    del st.session_state.programs[pid]
+                                    st.success("프로그램이 삭제되었습니다!")
+                                    st.rerun()
+
+            with tab3:
+                st.subheader("대기자 목록")
+                st.dataframe(waitlist, use_container_width=True)
+
         else:
-            st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
+            st.error("❌ 로그인 정보가 올바르지 않습니다.")
 
 # ====================== 4. 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
@@ -246,28 +276,28 @@ elif menu == "🔄 내 신청 확인 / 취소":
         my_wait = waitlist[waitlist["전화번호"].astype(str).str.strip() == phone.strip()] if not waitlist.empty else pd.DataFrame()
 
         if my_normal.empty and my_wait.empty:
-            st.warning("해당 전화번호로 신청된 내용이 없습니다.")
+            st.warning("신청 내역이 없습니다.")
         else:
             if not my_normal.empty:
                 st.subheader("✅ 정상 신청")
                 for i, row in my_normal.iterrows():
                     with st.container(border=True):
-                        st.write(f"**{row['프로그램']}** | {row['날짜']} | {row.get('금액', '')}")
+                        st.write(f"**{row['프로그램']}** | {row['날짜']}")
                         st.write(f"신청일시: {row['신청시간']}")
-                        if st.button(f"❌ 이 신청 취소하기", key=f"cancel_normal_{i}"):
+                        if st.button(f"❌ 취소하기", key=f"cancel_n_{i}"):
                             df = df.drop(i)
                             save_data(df, "신청목록.csv")
-                            st.success("✅ 정상 신청이 취소되었습니다!")
+                            st.success("취소되었습니다!")
                             st.rerun()
 
             if not my_wait.empty:
                 st.subheader("⏳ 대기자 신청")
                 for i, row in my_wait.iterrows():
                     with st.container(border=True):
-                        st.write(f"**{row['프로그램']}** 대기자 | {row.get('대기순위', 'N/A')}순위 | {row['날짜']}")
+                        st.write(f"**{row['프로그램']}** 대기자 | {row.get('대기순위', '')}순위")
                         st.write(f"신청일시: {row['신청시간']}")
-                        if st.button(f"❌ 대기자 신청 취소하기", key=f"cancel_wait_{i}"):
+                        if st.button(f"❌ 취소하기", key=f"cancel_w_{i}"):
                             waitlist = waitlist.drop(i)
                             save_data(waitlist, "대기자목록.csv")
-                            st.success("✅ 대기자 신청이 취소되었습니다!")
+                            st.success("대기자 신청이 취소되었습니다!")
                             st.rerun()
