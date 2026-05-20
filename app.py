@@ -4,6 +4,7 @@ from datetime import datetime, date
 import time
 import re
 import os
+import json
 
 st.set_page_config(page_title="생태관광 프로그램 신청", page_icon="🌿", layout="wide")
 
@@ -25,11 +26,12 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 6.0 - 최종 안정화 버전")
+st.sidebar.info("🌱 한국생태관광협회\n버전 6.1 - 프로그램 영구 저장")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
 IMAGE_DIR = os.path.join(DATA_DIR, "images")
+PROGRAM_FILE = os.path.join(DATA_DIR, "programs.json")
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
 def load_data(filename, columns):
@@ -51,6 +53,46 @@ def save_data(df, filename):
         st.error(f"💾 저장 실패: {e}")
         return False
 
+# ====================== 프로그램 영구 저장/로드 ======================
+def load_programs():
+    if os.path.exists(PROGRAM_FILE):
+        try:
+            with open(PROGRAM_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                # deadline을 date 객체로 변환
+                for p in data.values():
+                    if isinstance(p.get("deadline"), str):
+                        p["deadline"] = date.fromisoformat(p["deadline"])
+                return data
+        except:
+            pass
+    # 기본 프로그램
+    return {
+        1: {"name": "정기 생태관광(6월) 양구 1차", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
+        2: {"name": "정기 생태관광(6월) 양구 2차", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
+        3: {"name": "정기 생태관광(6월) 양구 3차", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
+        4: {"name": "정기 생태관광(6월) 양구 4차", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+        5: {"name": "정기 생태관광(6월) 고창", "period": "2026년 6월 18일 (목) ~ 6월 19일 (금)", "desc": "나는 개똥벌레~ 여름을 맞이하는 반딧불이 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 6, 11), "price": "회원:50,000 / 비회원:70,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+    }
+
+def save_programs(programs):
+    try:
+        # date 객체를 문자열로 변환해서 저장
+        data_to_save = {}
+        for k, v in programs.items():
+            data_to_save[k] = v.copy()
+            if isinstance(data_to_save[k].get("deadline"), date):
+                data_to_save[k]["deadline"] = data_to_save[k]["deadline"].isoformat()
+        with open(PROGRAM_FILE, "w", encoding="utf-8") as f:
+            json.dump(data_to_save, f, ensure_ascii=False, indent=2)
+        return True
+    except:
+        return False
+
+# ====================== 프로그램 로드 ======================
+if "programs" not in st.session_state:
+    st.session_state.programs = load_programs()
+
 # ====================== 데이터 로드 ======================
 df = load_data("신청목록.csv", ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형"])
 waitlist = load_data("대기자목록.csv", ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형", "대기순위"])
@@ -64,14 +106,6 @@ if "is_waitlist" not in st.session_state:
     st.session_state.is_waitlist = False
 if "is_admin_logged_in" not in st.session_state:
     st.session_state.is_admin_logged_in = False
-if "programs" not in st.session_state:
-    st.session_state.programs = {
-        1: {"name": "정기 생태관광(6월) 양구 1차", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
-        2: {"name": "정기 생태관광(6월) 양구 2차", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
-        3: {"name": "정기 생태관광(6월) 양구 3차", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
-        4: {"name": "정기 생태관광(6월) 양구 4차", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
-        5: {"name": "정기 생태관광(6월) 고창", "period": "2026년 6월 18일 (목) ~ 6월 19일 (금)", "desc": "나는 개똥벌레~ 여름을 맞이하는 반딧불이 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 6, 11), "price": "회원:50,000 / 비회원:70,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
-    }
 
 # ====================== 1. 프로그램 목록 ======================
 if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
@@ -170,7 +204,6 @@ elif st.session_state.page == "apply":
 
     if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", 
                  type="primary", use_container_width=True, disabled=not consent):
-        
         phone_pattern = r"^010-\d{4}-\d{4}$"
         email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 
@@ -225,7 +258,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 (수정 안정화) ======================
+# ====================== 3. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
 
@@ -281,11 +314,13 @@ elif menu == "🔑 관리자 페이지":
                             "max": n_max, "emoji": "🌿", "deadline": n_deadline,
                             "price": n_price, "image": image_path
                         }
+                        save_programs(st.session_state.programs)
                         st.success("✅ 새 프로그램이 추가되었습니다!")
                         st.rerun()
 
             # 기존 프로그램 관리
-            for pid, prog in list(st.session_state.programs.items()):
+            for pid in list(st.session_state.programs.keys()):
+                prog = st.session_state.programs[pid]
                 with st.expander(f"📌 {prog['name']}"):
                     edit_name = st.text_input("이름", prog["name"], key=f"name_{pid}")
                     edit_period = st.text_input("기간", prog["period"], key=f"period_{pid}")
@@ -307,11 +342,13 @@ elif menu == "🔑 관리자 페이지":
                                 "period": edit_period,
                                 "desc": edit_desc
                             })
+                            save_programs(st.session_state.programs)
                             st.success("✅ 수정 완료!")
                             st.rerun()
                     with col2:
                         if st.button("🗑 삭제", key=f"del_{pid}"):
                             del st.session_state.programs[pid]
+                            save_programs(st.session_state.programs)
                             st.success("🗑 프로그램이 삭제되었습니다!")
                             st.rerun()
 
