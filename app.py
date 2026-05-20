@@ -15,6 +15,8 @@ st.markdown("""
                    box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e0e0e0;}
     .title {color: #1a5f3a; font-size: 46px; font-weight: bold; text-align: center; margin-bottom: 8px;}
     .subtitle {color: #2e7d32; text-align: center; font-size: 21px; margin-bottom: 35px;}
+    .program-image {width: 100%; height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 18px;}
+    .stButton > button {background-color: #1a5f3a !important; color: white !important; font-size: 16px; padding: 12px 20px; border-radius: 10px; font-weight: bold; width: 100%;}
     .notice {background-color: #fff8e1; padding: 20px; border-radius: 12px; border-left: 6px solid #ffc107; margin-bottom: 30px;}
     </style>
 """, unsafe_allow_html=True)
@@ -24,7 +26,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 5.3 - 사진 업로드 완전 해결")
+st.sidebar.info("🌱 한국생태관광협회\n버전 5.4 - deprecation 오류 수정")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
@@ -95,11 +97,11 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
 
         with cols[(idx-1) % 2]:
             with st.container(border=True):
-                # 사진 표시 개선
+                # 사진 표시 (deprecation 오류 수정)
                 try:
-                    st.image(prog["image"], use_column_width=True)
+                    st.image(prog["image"], width=600)
                 except:
-                    st.image("https://via.placeholder.com/600x220?text=사진+준비중", use_column_width=True)
+                    st.image("https://via.placeholder.com/600x220?text=사진+준비중", width=600)
 
                 st.markdown(f"""
                     <h3>{prog['emoji']} {prog['name']}</h3>
@@ -126,7 +128,6 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
 
 # ====================== 2. 신청 페이지 ======================
 elif st.session_state.page == "apply":
-    # (신청 페이지 코드는 이전과 동일)
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
         if st.button("← 돌아가기"):
@@ -151,7 +152,6 @@ elif st.session_state.page == "apply":
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
     if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", type="primary", use_container_width=True):
-        # 신청 로직 (이전과 동일)
         phone_pattern = r"^010-\d{4}-\d{4}$"
         email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 
