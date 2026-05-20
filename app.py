@@ -26,13 +26,13 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 3.0 - Disk 권한 수정 완료")
+st.sidebar.info("🌱 한국생태관광협회\n버전 3.1 - 데이터 안정화")
 
-# ====================== Persistent Disk 설정 (권한 오류 해결) ======================
+# ====================== Persistent Disk 설정 ======================
 DATA_DIR = "/data"
 try:
     os.makedirs(DATA_DIR, exist_ok=True)
-except PermissionError:
+except:
     DATA_DIR = "/tmp/data"
     os.makedirs(DATA_DIR, exist_ok=True)
     st.sidebar.warning("⚠️ Persistent Disk 권한 문제로 임시 저장소를 사용합니다.")
@@ -42,8 +42,7 @@ def load_data(filename, columns):
     try:
         if os.path.exists(full_path):
             df = pd.read_csv(full_path, encoding="utf-8-sig")
-            df = df.dropna(how='all').reset_index(drop=True)
-            return df
+            return df.dropna(how='all').reset_index(drop=True)
     except:
         pass
     return pd.DataFrame(columns=columns)
@@ -57,7 +56,7 @@ def save_data(df, filename):
         st.error(f"💾 저장 실패: {e}")
         return False
 
-# 데이터 로드
+# ====================== 데이터 불러오기 ======================
 df = load_data("신청목록.csv", 
     ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형"])
 
@@ -115,7 +114,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                 """, unsafe_allow_html=True)
 
                 if is_closed:
-                    st.button("신청 불가", disabled=True, use_container_width=True)
+                    st.button("✅ 모집 완료", disabled=True, use_container_width=True)
                 elif is_full:
                     st.markdown('<p class="full">🔒 정원이 마감되었습니다</p>', unsafe_allow_html=True)
                     if st.button(f"⏳ 대기자로 신청하기 (현재 {wait_count}명)", key=f"wait_{idx}", use_container_width=True):
