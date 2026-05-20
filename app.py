@@ -24,7 +24,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 5.5 - 사진 업로드 & 표시 완전 수정")
+st.sidebar.info("🌱 한국생태관광협회\n버전 5.6 - 개인정보 동의 + 보호정책")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
@@ -95,7 +95,6 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
 
         with cols[(idx-1) % 2]:
             with st.container(border=True):
-                # ✅ 사진 표시 수정 (deprecation 오류 해결)
                 try:
                     st.image(prog["image"], width=600)
                 except:
@@ -140,25 +139,29 @@ elif st.session_state.page == "apply":
     st.success(f"📅 {prog['period']} | {prog['price']}")
 
     col1, col2 = st.columns(2)
-    with col1: 
-        이름 = st.text_input("이름", placeholder="홍길동")
-    with col2: 
-        전화번호 = st.text_input("전화번호", placeholder="010-1234-5678")
+    with col1: 이름 = st.text_input("이름", placeholder="홍길동")
+    with col2: 전화번호 = st.text_input("전화번호", placeholder="010-1234-5678")
 
     col3, col4 = st.columns(2)
-    with col3: 
-        이메일 = st.text_input("이메일", placeholder="example@mail.com")
-    with col4: 
-        생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
+    with col3: 이메일 = st.text_input("이메일", placeholder="example@mail.com")
+    with col4: 생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
 
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
-    if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", type="primary", use_container_width=True):
+    # ==================== 개인정보 동의 체크박스 ====================
+    st.markdown("---")
+    consent = st.checkbox("**개인정보 수집 및 이용에 동의합니다.** (필수)", 
+                         help="이름, 연락처, 이메일 등 신청에 필요한 정보를 수집·이용하는 데 동의합니다.")
+
+    if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", 
+                 type="primary", use_container_width=True, disabled=not consent):
         phone_pattern = r"^010-\d{4}-\d{4}$"
         email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 
         if not 이름.strip() or not re.match(phone_pattern, 전화번호.strip()) or not re.match(email_pattern, 이메일.strip()):
             st.error("입력 정보를 확인해주세요.")
+        elif not consent:
+            st.error("개인정보 제공 동의가 필요합니다.")
         else:
             신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M")
             유형 = "대기자" if is_wait else "정상신청"
@@ -197,6 +200,7 @@ elif st.session_state.page == "apply":
 
 # ====================== 3. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
+    # (관리자 페이지 코드는 이전과 동일 - 생략 없이 그대로)
     st.title("🔑 관리자 페이지")
 
     if not st.session_state.is_admin_logged_in:
@@ -229,7 +233,6 @@ elif menu == "🔑 관리자 페이지":
         with tab2:
             st.subheader("📝 프로그램 관리")
 
-            # 새 프로그램 추가
             with st.expander("➕ 새 프로그램 추가"):
                 n_name = st.text_input("프로그램 이름")
                 n_period = st.text_input("기간")
@@ -254,7 +257,6 @@ elif menu == "🔑 관리자 페이지":
                         st.success("✅ 새 프로그램이 추가되었습니다!")
                         st.rerun()
 
-            # 기존 프로그램 수정/사진 변경
             for pid, prog in list(st.session_state.programs.items()):
                 with st.expander(f"📌 {prog['name']}"):
                     edit_name = st.text_input("이름", prog["name"], key=f"name_{pid}")
@@ -267,7 +269,6 @@ elif menu == "🔑 관리자 페이지":
                         with open(image_path, "wb") as f:
                             f.write(uploaded_edit.getbuffer())
                         prog["image"] = image_path
-                        st.success("사진이 변경되었습니다.")
 
                     col1, col2 = st.columns(2)
                     with col1:
@@ -316,3 +317,13 @@ elif menu == "🔄 내 신청 확인 / 취소":
                             save_data(waitlist, "대기자목록.csv")
                             st.success("취소되었습니다!")
                             st.rerun()
+
+# ====================== 사이트 하단 - 개인정보 보호정책 ======================
+st.markdown("---")
+st.markdown("""
+    <p style="text-align: center; color: #666; font-size: 14px;">
+        © 한국생태관광협회 | 
+        <a href="#" target="_blank" style="color: #1a5f3a;">개인정보 보호정책</a> | 
+        <a href="#" target="_blank" style="color: #1a5f3a;">이용약관</a>
+    </p>
+""", unsafe_allow_html=True)
