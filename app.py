@@ -26,7 +26,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 5.0 - 프로그램 관리 기능 추가")
+st.sidebar.info("🌱 한국생태관광협회\n버전 5.1 - 사진 업로드 + 개인정보 정책 관리")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
@@ -188,7 +188,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 (프로그램 추가/수정/삭제) ======================
+# ====================== 3. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
 
@@ -210,7 +210,7 @@ elif menu == "🔑 관리자 페이지":
             st.rerun()
 
         st.divider()
-        tab1, tab2 = st.tabs(["📋 신청 관리", "📝 프로그램 관리"])
+        tab1, tab2, tab3 = st.tabs(["📋 신청 관리", "📝 프로그램 관리", "📜 개인정보 보호정책"])
 
         with tab1:
             st.subheader("전체 신청 목록")
@@ -222,41 +222,50 @@ elif menu == "🔑 관리자 페이지":
         with tab2:
             st.subheader("📝 프로그램 관리")
 
-            # 1. 새 프로그램 추가
+            # 새 프로그램 추가
             with st.expander("➕ 새 프로그램 추가"):
                 n_name = st.text_input("프로그램 이름")
-                n_period = st.text_input("기간 (예: 2026년 8월 10일)")
+                n_period = st.text_input("기간")
                 n_desc = st.text_area("설명")
                 n_max = st.number_input("최대 인원", min_value=1, value=15)
                 n_deadline = st.date_input("마감일")
                 n_price = st.text_input("참가비")
-                n_image = st.text_input("사진 URL")
+                uploaded_file = st.file_uploader("사진 업로드", type=["jpg", "png", "jpeg"])
 
                 if st.button("✅ 프로그램 추가"):
-                    if n_name and n_period:
+                    if n_name and n_period and uploaded_file:
+                        image_path = os.path.join(IMAGE_DIR, uploaded_file.name)
+                        with open(image_path, "wb") as f:
+                            f.write(uploaded_file.getbuffer())
+
                         new_id = max(st.session_state.programs.keys()) + 1
                         st.session_state.programs[new_id] = {
                             "name": n_name, "period": n_period, "desc": n_desc,
                             "max": n_max, "emoji": "🌿", "deadline": n_deadline,
-                            "price": n_price, "image": n_image
+                            "price": n_price, "image": image_path
                         }
                         st.success("새 프로그램이 추가되었습니다!")
                         st.rerun()
 
-            # 2. 기존 프로그램 수정 / 삭제
+            # 기존 프로그램 관리
             st.subheader("기존 프로그램 목록")
             for pid, prog in list(st.session_state.programs.items()):
                 with st.expander(f"📌 {prog['name']}"):
                     edit_name = st.text_input("이름", prog["name"], key=f"name_{pid}")
                     edit_period = st.text_input("기간", prog["period"], key=f"period_{pid}")
                     edit_desc = st.text_area("설명", prog["desc"], key=f"desc_{pid}")
-                    edit_image = st.text_input("사진 URL", prog["image"], key=f"image_{pid}")
+                    uploaded_edit = st.file_uploader("사진 변경", type=["jpg","png","jpeg"], key=f"upload_{pid}")
+
+                    if uploaded_edit:
+                        image_path = os.path.join(IMAGE_DIR, uploaded_edit.name)
+                        with open(image_path, "wb") as f:
+                            f.write(uploaded_edit.getbuffer())
+                        prog["image"] = image_path
 
                     col1, col2 = st.columns(2)
                     with col1:
                         if st.button("💾 수정 저장", key=f"save_{pid}"):
-                            st.session_state.programs[pid] = {**prog, "name": edit_name, "period": edit_period, 
-                                                            "desc": edit_desc, "image": edit_image}
+                            st.session_state.programs[pid] = {**prog, "name": edit_name, "period": edit_period, "desc": edit_desc}
                             st.success("수정 완료!")
                             st.rerun()
                     with col2:
@@ -264,6 +273,17 @@ elif menu == "🔑 관리자 페이지":
                             del st.session_state.programs[pid]
                             st.success("프로그램이 삭제되었습니다!")
                             st.rerun()
+
+        with tab3:
+            st.subheader("📜 개인정보 보호정책 관리")
+            policy_text = st.text_area("개인정보 보호정책 내용", height=400, 
+                value="""[여기에 개인정보 보호정책 전문을 작성하세요]
+
+한국생태관광협회는 개인정보 보호법에 따라 이용자의 개인정보를 보호합니다.""")
+            if st.button("✅ 정책 저장"):
+                with open(os.path.join(DATA_DIR, "privacy_policy.txt"), "w", encoding="utf-8") as f:
+                    f.write(policy_text)
+                st.success("개인정보 보호정책이 저장되었습니다!")
 
 # ====================== 4. 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
