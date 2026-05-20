@@ -53,7 +53,7 @@ def save_data(df, filename):
         st.error(f"💾 저장 실패: {e}")
         return False
 
-# 간단 암호화 함수
+# ====================== 암호화 함수 ======================
 def encrypt(text):
     if not text:
         return ""
@@ -80,6 +80,14 @@ if "is_waitlist" not in st.session_state:
     st.session_state.is_waitlist = False
 if "is_admin_logged_in" not in st.session_state:
     st.session_state.is_admin_logged_in = False
+if "programs" not in st.session_state:
+    st.session_state.programs = {
+        1: {"name": "정기 생태관광(6월) 양구 1차", "period": "2026년 6월 10일 (수) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🏔️", "deadline": date(2026, 6, 3), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/1.jpg"},
+        2: {"name": "정기 생태관광(6월) 양구 2차", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
+        3: {"name": "정기 생태관광(6월) 양구 3차", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
+        4: {"name": "정기 생태관광(6월) 양구 4차", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+        5: {"name": "정기 생태관광(6월) 고창", "period": "2026년 6월 18일 (목) ~ 6월 19일 (금)", "desc": "나는 개똥벌레~ 여름을 맞이하는 반딧불이 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 6, 11), "price": "회원:50,000 / 비회원:70,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
+    }
 
 # ====================== 1. 프로그램 목록 ======================
 if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
@@ -96,7 +104,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
     """, unsafe_allow_html=True)
 
     cols = st.columns(2)
-    for idx, prog in st.session_state.get("programs", {}).items():
+    for idx, prog in st.session_state.programs.items():
         current = len(df[df["프로그램"] == prog["name"]]) if not df.empty else 0
         wait_count = len(waitlist[waitlist["프로그램"] == prog["name"]]) if not waitlist.empty else 0
         is_closed = date.today() > prog["deadline"]
@@ -128,10 +136,13 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 2. 신청 페이지 (개인정보 동의 체크박스) ======================
+# ====================== 2. 신청 페이지 (개인정보 동의 + 암호화) ======================
 elif st.session_state.page == "apply":
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
+        if st.button("← 돌아가기"):
+            st.session_state.page = "main"
+            st.rerun()
         st.stop()
 
     prog = st.session_state.selected_program
@@ -153,10 +164,10 @@ elif st.session_state.page == "apply":
     # ==================== 개인정보 동의 체크박스 ====================
     agree = st.checkbox(
         "✅ [필수] 개인정보 수집 및 이용에 동의합니다.",
-        help="이름, 전화번호, 이메일, 생년월일을 신청 처리 및 연락 목적으로 수집합니다."
+        help="이름, 전화번호, 이메일, 생년월일을 신청 처리 및 연락 목적으로 수집·이용합니다."
     )
 
-    st.caption("[개인정보 보호정책](https://ecotourism-app.onrender.com/privacy)")
+    st.caption("[개인정보 보호정책 보기](https://ecotourism-app.onrender.com/privacy)")
 
     if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", 
                  type="primary", use_container_width=True, disabled=not agree):
@@ -175,9 +186,9 @@ elif st.session_state.page == "apply":
                 "프로그램": prog["name"],
                 "날짜": prog["period"],
                 "이름": 이름.strip(),
-                "전화번호": encrypt(전화번호.strip()),
-                "이메일": encrypt(이메일.strip()),
-                "생년월일": encrypt(str(생년월일)),
+                "전화번호": encrypt(전화번호.strip()),   # 암호화
+                "이메일": encrypt(이메일.strip()),       # 암호화
+                "생년월일": encrypt(str(생년월일)),      # 암호화
                 "요청사항": 요청사항,
                 "금액": prog["price"],
                 "유형": 유형,
@@ -207,29 +218,75 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 관리자 페이지 ======================
+# ====================== 3. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
-    admin_id = st.text_input("관리자 아이디", placeholder="admin")
-    admin_pw = st.text_input("관리자 비밀번호", type="password")
 
-    if st.button("로그인", type="primary", use_container_width=True):
-        if admin_id.strip() == "admin" and admin_pw == "ecotour8677!":
-            st.session_state.is_admin_logged_in = True
-            st.success("✅ 로그인 성공!")
-            st.rerun()
-        else:
-            st.error("로그인 실패")
+    if not st.session_state.is_admin_logged_in:
+        admin_id = st.text_input("관리자 아이디", placeholder="admin")
+        admin_pw = st.text_input("관리자 비밀번호", type="password")
 
-    if st.session_state.get("is_admin_logged_in", False):
+        if st.button("로그인", type="primary", use_container_width=True):
+            if admin_id.strip() == "admin" and admin_pw == "ecotour8677!":
+                st.session_state.is_admin_logged_in = True
+                st.success("✅ 로그인 성공!")
+                st.rerun()
+            else:
+                st.error("❌ 아이디 또는 비밀번호가 틀렸습니다.")
+    else:
+        st.success("✅ 관리자 로그인 상태")
         if st.button("로그아웃"):
             st.session_state.is_admin_logged_in = False
             st.rerun()
 
-        # 관리자 페이지 내용 (신청 목록, 프로그램 관리 등)
-        st.info("관리자 페이지입니다. (개인정보는 복호화되어 표시됩니다.)")
-        # ... (필요 시 이전 관리자 코드 추가)
+        st.divider()
+        tab1, tab2 = st.tabs(["📋 신청 관리", "📝 프로그램 관리"])
 
-# ====================== 개인정보 보호정책 링크 ======================
-st.caption("© 2026 한국생태관광협회 | ")
-st.markdown("[개인정보 보호정책](https://ecotourism-app.onrender.com/privacy)", unsafe_allow_html=True)
+        with tab1:
+            st.subheader("전체 신청 목록")
+            if df.empty:
+                st.info("아직 신청이 없습니다.")
+            else:
+                st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True)
+
+        with tab2:
+            st.subheader("프로그램 관리")
+            st.info("프로그램 추가·수정·삭제 기능")
+
+# ====================== 4. 내 신청 확인 / 취소 ======================
+elif menu == "🔄 내 신청 확인 / 취소":
+    st.title("🔄 내 신청 확인 / 취소")
+    phone = st.text_input("📱 전화번호를 입력하세요", placeholder="010-1234-5678")
+
+    if phone:
+        my_normal = df[df["전화번호"].astype(str).str.strip() == phone.strip()]
+        my_wait = waitlist[waitlist["전화번호"].astype(str).str.strip() == phone.strip()] if not waitlist.empty else pd.DataFrame()
+
+        if my_normal.empty and my_wait.empty:
+            st.warning("신청 내역이 없습니다.")
+        else:
+            if not my_normal.empty:
+                st.subheader("✅ 정상 신청")
+                for i, row in my_normal.iterrows():
+                    with st.container(border=True):
+                        st.write(f"**{row['프로그램']}** | {row['날짜']}")
+                        st.write(f"신청일시: {row['신청시간']}")
+                        if st.button(f"❌ 취소하기", key=f"cn_{i}"):
+                            df = df.drop(i)
+                            save_data(df, "신청목록.csv")
+                            st.success("취소되었습니다!")
+                            st.rerun()
+
+            if not my_wait.empty:
+                st.subheader("⏳ 대기자 신청")
+                for i, row in my_wait.iterrows():
+                    with st.container(border=True):
+                        st.write(f"**{row['프로그램']}** 대기자 | {row.get('대기순위', '')}순위")
+                        st.write(f"신청일시: {row['신청시간']}")
+                        if st.button(f"❌ 취소하기", key=f"cw_{i}"):
+                            waitlist = waitlist.drop(i)
+                            save_data(waitlist, "대기자목록.csv")
+                            st.success("취소되었습니다!")
+                            st.rerun()
+
+st.caption("© 2026 한국생태관광협회 | [개인정보 보호정책](https://ecotourism-app.onrender.com/privacy)")
