@@ -4,7 +4,6 @@ from datetime import datetime, date
 import time
 import re
 import os
-import base64
 
 st.set_page_config(page_title="생태관광 프로그램 신청", page_icon="🌿", layout="wide")
 
@@ -27,7 +26,7 @@ menu = st.sidebar.selectbox(
     "📍 메뉴 선택",
     ["🏠 프로그램 목록", "🔄 내 신청 확인 / 취소", "🔑 관리자 페이지"]
 )
-st.sidebar.info("🌱 한국생태관광협회\n버전 5.1 - 개인정보 보호 강화")
+st.sidebar.info("🌱 한국생태관광협회\n버전 5.0 - 프로그램 관리 기능 추가")
 
 # ====================== Persistent Disk ======================
 DATA_DIR = "/data"
@@ -52,20 +51,6 @@ def save_data(df, filename):
     except Exception as e:
         st.error(f"💾 저장 실패: {e}")
         return False
-
-# ====================== 암호화 함수 ======================
-def encrypt(text):
-    if not text:
-        return ""
-    return base64.b64encode(text.encode('utf-8')).decode('utf-8')
-
-def decrypt(encrypted_text):
-    if not encrypted_text:
-        return ""
-    try:
-        return base64.b64decode(encrypted_text.encode('utf-8')).decode('utf-8')
-    except:
-        return encrypted_text
 
 # ====================== 데이터 로드 ======================
 df = load_data("신청목록.csv", ["신청시간", "프로그램", "날짜", "이름", "전화번호", "이메일", "생년월일", "요청사항", "금액", "유형"])
@@ -136,7 +121,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                         st.session_state.page = "apply"
                         st.rerun()
 
-# ====================== 2. 신청 페이지 (개인정보 동의 + 암호화) ======================
+# ====================== 2. 신청 페이지 ======================
 elif st.session_state.page == "apply":
     if st.session_state.selected_program is None:
         st.error("잘못된 접근입니다.")
@@ -161,19 +146,11 @@ elif st.session_state.page == "apply":
 
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
-    # ==================== 개인정보 동의 체크박스 ====================
-    agree = st.checkbox(
-        "✅ [필수] 개인정보 수집 및 이용에 동의합니다.",
-        help="이름, 전화번호, 이메일, 생년월일을 신청 처리 및 연락 목적으로 수집·이용합니다."
-    )
+    if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", type="primary", use_container_width=True):
+        phone_pattern = r"^010-\d{4}-\d{4}$"
+        email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 
-    st.caption("[개인정보 보호정책 보기](https://ecotourism-app.onrender.com/privacy)")
-
-    if st.button("✅ 최종 신청하기" if not is_wait else "⏳ 대기자로 신청하기", 
-                 type="primary", use_container_width=True, disabled=not agree):
-        if not agree:
-            st.error("개인정보 수집·이용 동의가 필요합니다.")
-        elif not 이름.strip() or not re.match(r"^010-\d{4}-\d{4}$", 전화번호.strip()) or not re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", 이메일.strip()):
+        if not 이름.strip() or not re.match(phone_pattern, 전화번호.strip()) or not re.match(email_pattern, 이메일.strip()):
             st.error("입력 정보를 확인해주세요.")
         else:
             신청시간 = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -182,17 +159,10 @@ elif st.session_state.page == "apply":
             대기순위 = current_wait + 1 if is_wait else None
 
             새신청 = pd.DataFrame([{
-                "신청시간": 신청시간,
-                "프로그램": prog["name"],
-                "날짜": prog["period"],
-                "이름": 이름.strip(),
-                "전화번호": encrypt(전화번호.strip()),   # 암호화
-                "이메일": encrypt(이메일.strip()),       # 암호화
-                "생년월일": encrypt(str(생년월일)),      # 암호화
-                "요청사항": 요청사항,
-                "금액": prog["price"],
-                "유형": 유형,
-                "대기순위": 대기순위
+                "신청시간": 신청시간, "프로그램": prog["name"], "날짜": prog["period"],
+                "이름": 이름.strip(), "전화번호": 전화번호.strip(), "이메일": 이메일.strip(),
+                "생년월일": 생년월일, "요청사항": 요청사항, "금액": prog["price"],
+                "유형": 유형, "대기순위": 대기순위
             }])
 
             if is_wait:
@@ -218,7 +188,7 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 3. 관리자 페이지 ======================
+# ====================== 3. 관리자 페이지 (프로그램 추가/수정/삭제) ======================
 elif menu == "🔑 관리자 페이지":
     st.title("🔑 관리자 페이지")
 
@@ -250,8 +220,50 @@ elif menu == "🔑 관리자 페이지":
                 st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True)
 
         with tab2:
-            st.subheader("프로그램 관리")
-            st.info("프로그램 추가·수정·삭제 기능")
+            st.subheader("📝 프로그램 관리")
+
+            # 1. 새 프로그램 추가
+            with st.expander("➕ 새 프로그램 추가"):
+                n_name = st.text_input("프로그램 이름")
+                n_period = st.text_input("기간 (예: 2026년 8월 10일)")
+                n_desc = st.text_area("설명")
+                n_max = st.number_input("최대 인원", min_value=1, value=15)
+                n_deadline = st.date_input("마감일")
+                n_price = st.text_input("참가비")
+                n_image = st.text_input("사진 URL")
+
+                if st.button("✅ 프로그램 추가"):
+                    if n_name and n_period:
+                        new_id = max(st.session_state.programs.keys()) + 1
+                        st.session_state.programs[new_id] = {
+                            "name": n_name, "period": n_period, "desc": n_desc,
+                            "max": n_max, "emoji": "🌿", "deadline": n_deadline,
+                            "price": n_price, "image": n_image
+                        }
+                        st.success("새 프로그램이 추가되었습니다!")
+                        st.rerun()
+
+            # 2. 기존 프로그램 수정 / 삭제
+            st.subheader("기존 프로그램 목록")
+            for pid, prog in list(st.session_state.programs.items()):
+                with st.expander(f"📌 {prog['name']}"):
+                    edit_name = st.text_input("이름", prog["name"], key=f"name_{pid}")
+                    edit_period = st.text_input("기간", prog["period"], key=f"period_{pid}")
+                    edit_desc = st.text_area("설명", prog["desc"], key=f"desc_{pid}")
+                    edit_image = st.text_input("사진 URL", prog["image"], key=f"image_{pid}")
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("💾 수정 저장", key=f"save_{pid}"):
+                            st.session_state.programs[pid] = {**prog, "name": edit_name, "period": edit_period, 
+                                                            "desc": edit_desc, "image": edit_image}
+                            st.success("수정 완료!")
+                            st.rerun()
+                    with col2:
+                        if st.button("🗑 삭제", key=f"del_{pid}"):
+                            del st.session_state.programs[pid]
+                            st.success("프로그램이 삭제되었습니다!")
+                            st.rerun()
 
 # ====================== 4. 내 신청 확인 / 취소 ======================
 elif menu == "🔄 내 신청 확인 / 취소":
@@ -288,5 +300,3 @@ elif menu == "🔄 내 신청 확인 / 취소":
                             save_data(waitlist, "대기자목록.csv")
                             st.success("취소되었습니다!")
                             st.rerun()
-
-st.caption("© 2026 한국생태관광협회 | [개인정보 보호정책](https://ecotourism-app.onrender.com/privacy)")
