@@ -181,8 +181,15 @@ elif st.session_state.page == "apply":
     with col2: 전화번호 = st.text_input("전화번호", placeholder="010-1234-5678")
 
     col3, col4 = st.columns(2)
-    with col3: 이메일 = st.text_input("이메일", placeholder="example@mail.com")
-    with col4: 생년월일 = st.date_input("생년월일", value=date(1900, 1, 1))
+    with col3: 
+        이메일 = st.text_input("이메일", placeholder="example@mail.com")
+    with col4: 
+        생년월일 = st.date_input(
+            "생년월일", 
+            value=date(2000, 1, 1),
+            min_value=date(1930, 1, 1),   # 1930년부터 선택 가능
+            max_value=date.today()        # 오늘까지
+        )
 
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
@@ -262,9 +269,8 @@ elif st.session_state.page == "apply":
                 del st.session_state[key]
         st.rerun()
 
-# ====================== 관리자 페이지 ======================
+# ====================== 3. 관리자 페이지 ======================
 elif menu == "🔑 관리자 페이지":
-    # (관리자 페이지 코드는 이전과 동일하게 유지)
     st.title("🔑 관리자 페이지")
 
     if not st.session_state.is_admin_logged_in:
@@ -285,16 +291,26 @@ elif menu == "🔑 관리자 페이지":
             st.rerun()
 
         st.divider()
-        tab1, tab2 = st.tabs(["📋 신청 관리", "📝 프로그램 관리"])
+        # ========== 여기부터 수정 ==========
+        tab1, tab2, tab3 = st.tabs(["📋 정상 신청", "⏳ 대기자 목록", "📝 프로그램 관리"])
 
         with tab1:
-            st.subheader("전체 신청 목록")
+            st.subheader("✅ 정상 신청 목록")
             if df.empty:
-                st.info("아직 신청이 없습니다.")
+                st.info("아직 정상 신청이 없습니다.")
             else:
                 st.dataframe(df.sort_values(by="신청시간", ascending=False), use_container_width=True)
+                st.success(f"총 {len(df)} 건의 정상 신청")
 
         with tab2:
+            st.subheader("⏳ 대기자 목록")
+            if waitlist.empty:
+                st.info("현재 대기자가 없습니다.")
+            else:
+                st.dataframe(waitlist.sort_values(by=["프로그램", "대기순위"]), use_container_width=True)
+                st.success(f"총 {len(waitlist)} 명의 대기자")
+
+        with tab3:
             st.subheader("📝 프로그램 관리")
 
             with st.expander("➕ 새 프로그램 추가"):
