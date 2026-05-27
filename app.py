@@ -182,7 +182,7 @@ elif st.session_state.page == "apply":
 
     col3, col4 = st.columns(2)
     with col3: 이메일 = st.text_input("이메일", placeholder="example@mail.com")
-    with col4: 생년월일 = st.date_input("생년월일", value=date(2000, 1, 1))
+    with col4: 생년월일 = st.date_input("생년월일", value=date(1900, 1, 1))
 
     요청사항 = st.text_area("추가 요청사항 (선택)", placeholder="예: 채식 식사 부탁드려요")
 
