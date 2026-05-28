@@ -412,6 +412,6 @@ st.markdown("---")
 st.markdown("""
     <p style="text-align: center; color: #666; font-size: 14px;">
         © 한국생태관광협회 | 
-        <a href="#" style="color: #1a5f3a;">개인정보 보호정책</a>
+        <a href="https://www.ecotourism.or.kr/general-5" target="_blank" style="color: #1a5f3a;">📜 개인정보 보호정책</a>
     </p>
 """, unsafe_allow_html=True)
