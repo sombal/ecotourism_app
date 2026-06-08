@@ -74,7 +74,6 @@ def load_programs():
         2: {"name": "정기 생태관광(6월) 양구 2차", "period": "2026년 6월 12일 (금) (당일)", "desc": "양구 DMZ 속을 탐방하는 양구 생태관광 프로그램", "max": 12, "emoji": "🌺", "deadline": date(2026, 6, 5), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/2.png"},
         3: {"name": "정기 생태관광(6월) 양구 3차", "period": "2026년 6월 16일 (화) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🏞️", "deadline": date(2026, 6, 1), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/3.jpg"},
         4: {"name": "정기 생태관광(6월) 양구 4차", "period": "2026년 6월 25일 (목) (당일)", "desc": "자연의 신비, 대암산 용늪으로 떠나는 양구 생태관광 프로그램", "max": 12, "emoji": "🌲", "deadline": date(2026, 6, 10), "price": "회원:30,000 / 비회원:50,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
-        5: {"name": "정기 생태관광(6월) 고창", "period": "2026년 6월 18일 (목) ~ 6월 19일 (금)", "desc": "나는 개똥벌레~ 여름을 맞이하는 반딧불이 생태관광 프로그램", "max": 20, "emoji": "🌲", "deadline": date(2026, 6, 11), "price": "회원:50,000 / 비회원:70,000", "image": "https://raw.githubusercontent.com/sombal/ecotourism_app/main/images/4.jpg"},
     }
 
 def save_programs(programs):
@@ -111,7 +110,7 @@ if "is_admin_logged_in" not in st.session_state:
 # ====================== 1. 프로그램 목록 ======================
 if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
     st.markdown('<p class="title">🌿 생태관광</p>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">자연과 주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">자연과 지역주민, 여행자가 함께하는 특별한 여행</p>', unsafe_allow_html=True)
 
     st.markdown("""
         <div class="notice">
@@ -145,7 +144,7 @@ if st.session_state.page == "main" and menu == "🏠 프로그램 목록":
                 """, unsafe_allow_html=True)
 
                 if is_closed:
-                    st.button("✅ 모집 완료", disabled=True, use_container_width=True)
+                    st.button("✅ 모집 완료", disabled=True, use_container_width=True, key=f"closed_{idx}")
                 elif is_full:
                     st.markdown('<p class="full">🔒 정원이 마감되었습니다</p>', unsafe_allow_html=True)
                     if st.button(f"⏳ 대기자로 신청하기", key=f"wait_{idx}", use_container_width=True):
